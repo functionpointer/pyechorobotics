@@ -1,0 +1,26 @@
+[project]
+name = "pyechorobotics"
+version = "0.0.1"
+dependencies = [
+    "aiohttp",
+    "yarl",
+    "pydantic",
+]
+readme = "README.md"
+license = {text = "GNU General Public License v3 or later (GPLv3+)"}
+description = "Access API for echorobotics robot lawn mowers"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3.10",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)"
+]
+authors = [
+    { name = "functionpointer", email = "suspendfunction@gmail.com" },
+]
+
+[project.urls]
+homepage = "https://github.com/functionpointer/pyechorobotics"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
