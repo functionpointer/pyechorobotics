@@ -14,7 +14,7 @@ class Position(BaseModel):
 
 class StatusInfo(BaseModel):
     robot: RobotId = Field(..., alias="Robot")
-    status: Literal["WaitStation", "Idle"] = Field(..., alias="Status")
+    status: Literal["WaitStation", "Idle", "Work"] = Field(..., alias="Status")
     mac_address: str = Field(..., alias="MacAddress")
     date: DateTimeISO8601 = Field(..., alias="Date")
     delta: str = Field(..., alias="Delta")
