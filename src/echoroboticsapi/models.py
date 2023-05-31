@@ -5,6 +5,19 @@ from typing import Literal
 DateTimeISO8601 = str
 RobotId = constr()
 Mode = Literal["chargeAndWork", "chargeAndStay", "work"]
+Status = Literal[
+    "Offline",
+    "Alarm state",
+    "Idle",
+    "WaitStation",
+    "Charge",
+    "GoUnloadStation",
+    "GoChargeStation",
+    "Work",
+    "LeaveStation",
+    "Off",
+]
+
 
 class Position(BaseModel):
     longitude: float = Field(..., alias="Longitude")
@@ -14,7 +27,7 @@ class Position(BaseModel):
 
 class StatusInfo(BaseModel):
     robot: RobotId = Field(..., alias="Robot")
-    status: Literal["WaitStation", "Idle", "Work", "Charge"] = Field(..., alias="Status")
+    status: Status = Field(..., alias="Status")
     mac_address: str = Field(..., alias="MacAddress")
     date: DateTimeISO8601 = Field(..., alias="Date")
     delta: str = Field(..., alias="Delta")
