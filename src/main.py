@@ -24,7 +24,7 @@ async def main():
         )
     ) as session:
         api = echoroboticsapi.Api(session, robot_ids=robot_id)
-        print(await api.last_statuses())
+        print(await api.get_config(reload=False))
 
         await asyncio.sleep(0.5)
 

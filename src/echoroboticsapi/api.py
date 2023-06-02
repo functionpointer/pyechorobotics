@@ -24,9 +24,32 @@ class Api:
             raise ValueError("must provide a robot id")
         self.logger = logging.getLogger("echoroboticsapi")
 
-    async def set_mode(
-        self, mode: Mode, robot_id: RobotId | None = None
-    ) -> int:
+    async def get_config(
+        self, reload: bool, robot_id: RobotId | None = None
+    ) -> GetConfig:
+        if len(self.robot_ids) > 1 and robot_id is None:
+            raise ValueError(
+                "more than 1 robot_id is known, please supply the argument robot_id"
+            )
+
+        if robot_id is None:
+            robot_id = self.robot_ids[0]
+        url = URL(
+            f"https://myrobot.echorobotics.com/api/RobotConfig/GetConfig/{robot_id}"
+        )
+        result = await self.request(method="GET", url=url % {"reload": str(reload)})
+        json = await result.json()
+
+        self.logger.debug(f"got json {json}")
+        try:
+            resp = GetConfig.parse_obj(json)
+            return resp
+        except pydantic.ValidationError as e:
+            self.logger.error(f"error was caused by json {json}")
+            self.logger.exception(e)
+            raise e
+
+    async def set_mode(self, mode: Mode, robot_id: RobotId | None = None) -> int:
         """Set the operating mode of the robot.
 
         Returns HTTP status code."""
@@ -38,7 +61,10 @@ class Api:
         result = await self.request(
             method="POST",
             url=URL("https://myrobot.echorobotics.com/api/RobotAction/SetMode"),
-            json={"Mode": mode, "RobotId": robot_id if robot_id is not None else self.robot_ids[0]},
+            json={
+                "Mode": mode,
+                "RobotId": robot_id if robot_id is not None else self.robot_ids[0],
+            },
         )
         return result.status
 
