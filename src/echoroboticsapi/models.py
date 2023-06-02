@@ -7,7 +7,7 @@ RobotId = constr()
 Mode = Literal["chargeAndWork", "chargeAndStay", "work"]
 Status = Literal[
     "Offline",
-    "Alarm state",
+    "Alarm",
     "Idle",
     "WaitStation",
     "Charge",
