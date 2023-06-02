@@ -24,16 +24,27 @@ class Api:
             raise ValueError("must provide a robot id")
         self.logger = logging.getLogger("echoroboticsapi")
 
-    async def get_config(
-        self, reload: bool, robot_id: RobotId | None = None
-    ) -> GetConfig:
+    def _get_robot_id(self, robot_id: RobotId | None):
         if len(self.robot_ids) > 1 and robot_id is None:
             raise ValueError(
                 "more than 1 robot_id is known, please supply the argument robot_id"
             )
-
         if robot_id is None:
-            robot_id = self.robot_ids[0]
+            return self.robot_ids[0]
+        else:
+            return robot_id
+
+    async def get_config(
+        self, reload: bool, robot_id: RobotId | None = None
+    ) -> GetConfig:
+        """calls GetConfig api endpoint.
+
+        Returns the last known state.
+        When called with reload==True, the last state is wiped and fetched again from the robot.
+        To get the result, the get_config() must be called again with reload==False a few seconds later
+        """
+        robot_id = self._get_robot_id(robot_id)
+
         url = URL(
             f"https://myrobot.echorobotics.com/api/RobotConfig/GetConfig/{robot_id}"
         )
@@ -53,17 +64,14 @@ class Api:
         """Set the operating mode of the robot.
 
         Returns HTTP status code."""
-        if len(self.robot_ids) > 1 and robot_id is None:
-            raise ValueError(
-                "more than 1 robot_id is known, please supply the argument robot_id"
-            )
+        robot_id = self._get_robot_id(robot_id)
 
         result = await self.request(
             method="POST",
             url=URL("https://myrobot.echorobotics.com/api/RobotAction/SetMode"),
             json={
                 "Mode": mode,
-                "RobotId": robot_id if robot_id is not None else self.robot_ids[0],
+                "RobotId": robot_id,
             },
         )
         return result.status

@@ -6,8 +6,13 @@ import aiohttp
 import asyncio
 import logging
 
+
 async def on_request_start(session, trace_config_ctx, params):
-    print("Starting %s request for %s. I will send: %s" % (params.method, params.url, params.headers))
+    print(
+        "Starting %s request for %s. I will send: %s"
+        % (params.method, params.url, params.headers)
+    )
+
 
 async def main():
     user_id = os.environ.get("USER_ID", "your_user_id_here")
@@ -18,9 +23,10 @@ async def main():
     trace_config.on_request_start.append(on_request_start)
 
     async with aiohttp.ClientSession(
-        #trace_configs=[trace_config],
+        # trace_configs=[trace_config],
         cookies=echoroboticsapi.create_cookies(
-            user_id=user_id, user_token=user_token,
+            user_id=user_id,
+            user_token=user_token,
         )
     ) as session:
         api = echoroboticsapi.Api(session, robot_ids=robot_id)
