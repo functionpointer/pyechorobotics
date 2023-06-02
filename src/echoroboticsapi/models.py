@@ -20,6 +20,8 @@ Status = Literal[
     "Unknown",
     "Warning",
     "Border",
+    "BorderCheck",
+    "BorderDiscovery",
 ]
 
 

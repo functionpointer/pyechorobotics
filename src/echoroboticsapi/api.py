@@ -5,11 +5,20 @@ from aiohttp import ClientSession, ClientResponse
 from yarl import URL
 from .models import *
 import logging
+import time
 
 
 def create_cookies(user_id: str, user_token: str) -> dict[str, str]:
     return {"UserId": user_id, "UserToken": user_token}
 
+
+class LastKnownMode:
+    mode: Mode
+    pending_since: float
+
+    def __init__(self, mode: Mode, pending_since: float | None = None):
+        self.mode = mode
+        self.pending_since = pending_since or time.time()
 
 class Api:
     """Class to make authenticated requests."""
@@ -23,6 +32,7 @@ class Api:
         if len(self.robot_ids) <= 0:
             raise ValueError("must provide a robot id")
         self.logger = logging.getLogger("echoroboticsapi")
+        self.smart_modes: dict[RobotId, "SmartMode"] = {}
 
     def _get_robot_id(self, robot_id: RobotId | None):
         if len(self.robot_ids) > 1 and robot_id is None:
@@ -74,6 +84,9 @@ class Api:
                 "RobotId": robot_id,
             },
         )
+        if result.status == 200:
+            if robot_id in self.smart_modes[robot_id]:
+                self.smart_modes[robot_id].notify_mode_set(mode)
         return result.status
 
     async def last_statuses(self) -> LastStatuses:
@@ -87,11 +100,20 @@ class Api:
         self.logger.debug(f"got json {json}")
         try:
             resp = LastStatuses.parse_obj(json)
-            return resp
         except pydantic.ValidationError as e:
             self.logger.error(f"error was caused by json {json}")
             self.logger.exception(e)
             raise e
+        else:
+            for si in resp.statuses_info:
+                if si.robot in self.smart_modes
+                if self.does_status_mean_mowing(si.status):
+                    if si.robot not in self._last_known_mode:
+                        self._last_known_mode[si.robot] = LastKnownMode(mode="work", pending_since=0)
+                    else:
+
+                        self._last_known_mode[si.robot] = "work"
+            return resp
 
     async def request(self, method: str, url: URL, **kwargs) -> ClientResponse:
         """Make a request."""
