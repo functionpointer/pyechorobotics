@@ -30,15 +30,20 @@ async def main():
         )
     ) as session:
         api = echoroboticsapi.Api(session, robot_ids=robot_id)
-        print(await api.get_config(reload=False))
+        smartmode = echoroboticsapi.SmartMode(robot_id)
+        api.register_smart_mode(smartmode)
+
+        print(f"last_statuses: {await api.history_list()}")
+
+        #print(f"last_statuses: {await api.last_statuses()}")
 
         await asyncio.sleep(0.5)
+        print(f"robot_mode guess: {await smartmode.get_robot_mode()}")
 
-        result = await api.set_mode("chargeAndWork")
-        print(result)
+        print(f"setmode chargeAndWork: {await api.set_mode('chargeAndWork')}")
 
         await asyncio.sleep(0.5)
-        print(await api.last_statuses())
+        print(f"robot_mode guess: {await smartmode.get_robot_mode()}")
 
 
 if __name__ == "__main__":

@@ -20,6 +20,7 @@ class LastKnownMode:
         self.mode = mode
         self.pending_since = pending_since or time.time()
 
+
 class Api:
     """Class to make authenticated requests."""
 
@@ -33,6 +34,9 @@ class Api:
             raise ValueError("must provide a robot id")
         self.logger = logging.getLogger("echoroboticsapi")
         self.smart_modes: dict[RobotId, "SmartMode"] = {}
+
+    def register_smart_mode(self, smartmode: "SmartMode"):
+        self.smart_modes[smartmode.robot_id] = smartmode
 
     def _get_robot_id(self, robot_id: RobotId | None):
         if len(self.robot_ids) > 1 and robot_id is None:
@@ -85,8 +89,10 @@ class Api:
             },
         )
         if result.status == 200:
-            if robot_id in self.smart_modes[robot_id]:
-                self.smart_modes[robot_id].notify_mode_set(mode)
+            if robot_id in self.smart_modes:
+                await self.smart_modes[robot_id].notify_mode_set(mode)
+            else:
+                self.logger.debug(f"no smart_mode for robot {robot_id}")
         return result.status
 
     async def last_statuses(self) -> LastStatuses:
@@ -106,13 +112,59 @@ class Api:
             raise e
         else:
             for si in resp.statuses_info:
-                if si.robot in self.smart_modes
-                if self.does_status_mean_mowing(si.status):
-                    if si.robot not in self._last_known_mode:
-                        self._last_known_mode[si.robot] = LastKnownMode(mode="work", pending_since=0)
-                    else:
+                if si.robot in self.smart_modes:
+                    await self.smart_modes[si.robot].notify_laststatuses_received(si.status)
+            return resp
 
-                        self._last_known_mode[si.robot] = "work"
+    async def history_list(
+        self,
+        robot_id: RobotId | None = None,
+        date_from: datetime.datetime | None = None,
+        date_to: datetime.datetime | None = None,
+    ) -> list[HistoryEvent]:
+        """Gets list of recent events, ordered by newest first.
+
+        Unfortunately this isn't that quick. You may have to wait 15mins for a new event to show up here.
+        """
+        robot_id = self._get_robot_id(robot_id)
+        if date_from is None:
+            date_from = datetime.datetime.now() - datetime.timedelta(hours=16)
+        if date_to is None:
+            date_to = datetime.datetime.now() + datetime.timedelta(hours=2)
+        url = URL("https://myrobot.echorobotics.com/api/History/list")
+        ftime = "%Y-%m-%dT%H:%M:%S"
+
+        response = await self.request(
+            method="GET",
+            url=url
+            % {
+                "DateFrom": date_from.strftime(ftime),
+                "DateTo": date_to.strftime(ftime),
+                "SerialNumber": robot_id,
+            },
+        )
+        json = await response.json()
+        try:
+            resp = []
+            for obj in json:
+                self.logger.debug("parsing history event %s", obj)
+                parsed = HistoryEventCombinedModel.parse_obj(obj)
+                self.logger.debug("success: %s", parsed)
+                resp.append(parsed)
+        except pydantic.ValidationError as e:
+            self.logger.error(f"error was caused by json {json}")
+            self.logger.exception(e)
+            raise e
+        else:
+            # https://stackoverflow.com/questions/3755136/pythonic-way-to-check-if-a-list-is-sorted-or-not
+            is_sorted = all(resp[i] >= resp[i + 1] for i in range(len(resp) - 1))
+            if not is_sorted:
+                self.logger.warning("history_list isn't sorted!")
+
+            resp = [q.__root__ for q in resp]
+
+            if robot_id in self.smart_modes:
+                await self.smart_modes[robot_id].notify_history_list_received(resp)
             return resp
 
     async def request(self, method: str, url: URL, **kwargs) -> ClientResponse:

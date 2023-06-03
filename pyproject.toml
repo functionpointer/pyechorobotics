@@ -1,10 +1,11 @@
 [project]
 name = "pyechorobotics"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
     "aiohttp",
     "yarl",
     "pydantic",
+    "python-dateutil"
 ]
 readme = "README.md"
 license = {text = "GNU General Public License v3 or later (GPLv3+)"}
