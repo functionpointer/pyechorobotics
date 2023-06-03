@@ -79,6 +79,7 @@ class Api:
 
         Returns HTTP status code."""
         robot_id = self._get_robot_id(robot_id)
+        self.logger.debug("set_mode: mode %s for %s", mode, robot_id)
 
         result = await self.request(
             method="POST",
@@ -92,7 +93,7 @@ class Api:
             if robot_id in self.smart_modes:
                 await self.smart_modes[robot_id].notify_mode_set(mode)
             else:
-                self.logger.debug(f"no smart_mode for robot {robot_id}")
+                self.logger.debug(f"set_mode: no smart_mode for robot {robot_id}")
         return result.status
 
     async def last_statuses(self) -> LastStatuses:
@@ -103,11 +104,11 @@ class Api:
 
         response.raise_for_status()
         json = await response.json()
-        self.logger.debug(f"got json {json}")
+        self.logger.debug(f"last_statuses: got json {json}")
         try:
             resp = LastStatuses.parse_obj(json)
         except pydantic.ValidationError as e:
-            self.logger.error(f"error was caused by json {json}")
+            self.logger.error(f"last_statuses: error was caused by json {json}")
             self.logger.exception(e)
             raise e
         else:
@@ -147,19 +148,19 @@ class Api:
         try:
             resp = []
             for obj in json:
-                self.logger.debug("parsing history event %s", obj)
+                self.logger.debug("history_list: parsing %s", obj)
                 parsed = HistoryEventCombinedModel.parse_obj(obj)
-                self.logger.debug("success: %s", parsed)
+                self.logger.debug("history_list: success: %s", parsed)
                 resp.append(parsed)
         except pydantic.ValidationError as e:
-            self.logger.error(f"error was caused by json {json}")
+            self.logger.error(f"history_list: error was caused by json {json}")
             self.logger.exception(e)
             raise e
         else:
             # https://stackoverflow.com/questions/3755136/pythonic-way-to-check-if-a-list-is-sorted-or-not
             is_sorted = all(resp[i] >= resp[i + 1] for i in range(len(resp) - 1))
             if not is_sorted:
-                self.logger.warning("history_list isn't sorted!")
+                self.logger.warning("history_list: isn't sorted!")
 
             resp = [q.__root__ for q in resp]
 
