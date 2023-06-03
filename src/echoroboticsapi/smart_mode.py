@@ -41,7 +41,7 @@ class SmartMode:
     async def notify_laststatuses_received(self, receivedstatus: Status) -> None:
         ismowing: bool = receivedstatus in ["LeaveStation", "Work"]
 
-        happend_a_while_ago: bool = time.time() < self._mode_known_since + 60
+        happend_a_while_ago: bool = time.time() > self._mode_known_since + 60
         if ismowing and self._last_known_mode != "work" and happend_a_while_ago:
             self.logger.info(
                 "laststatuses: status is %s, inferring modechange from %s to %s",
