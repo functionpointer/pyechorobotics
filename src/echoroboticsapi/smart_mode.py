@@ -25,7 +25,7 @@ class SmartMode:
         self._mode_known_since: float = 0
         self.logger = logging.getLogger(__name__)
 
-    async def get_robot_mode(self) -> Mode | None:
+    def get_robot_mode(self) -> Mode | None:
         """Tries to guess which mode the robot is in
 
         Keeps track of previous calls of set_mode, and also uses hints from status from last_statuses.

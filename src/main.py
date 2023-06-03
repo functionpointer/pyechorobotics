@@ -38,12 +38,12 @@ async def main():
         #print(f"last_statuses: {await api.last_statuses()}")
 
         await asyncio.sleep(0.5)
-        print(f"robot_mode guess: {await smartmode.get_robot_mode()}")
+        print(f"robot_mode guess: {smartmode.get_robot_mode()}")
 
         print(f"setmode chargeAndWork: {await api.set_mode('chargeAndWork')}")
 
         await asyncio.sleep(0.5)
-        print(f"robot_mode guess: {await smartmode.get_robot_mode()}")
+        print(f"robot_mode guess: {smartmode.get_robot_mode()}")
 
 
 if __name__ == "__main__":
