@@ -2,7 +2,14 @@ import logging
 import time
 
 from .api import Api
-from .models import RobotId, Status, Mode, HistoryEvent, RemoteSetModeHistoryEvent, RemoteSetModeHistoryEventDetails
+from .models import (
+    RobotId,
+    Status,
+    Mode,
+    HistoryEvent,
+    RemoteSetModeHistoryEvent,
+    RemoteSetModeHistoryEventDetails,
+)
 
 
 class SmartMode:
@@ -40,16 +47,24 @@ class SmartMode:
 
     async def notify_laststatuses_received(self, receivedstatus: Status) -> None:
         ismowing: bool = receivedstatus in ["LeaveStation", "Work"]
-
+        isstaying: bool = receivedstatus in ["Idle"]
         happend_a_while_ago: bool = time.time() > self._mode_known_since + 60
-        if ismowing and self._last_known_mode != "work" and happend_a_while_ago:
+
+        new_mode: Mode | None = None
+        if ismowing and happend_a_while_ago:
+            new_mode = "work"
+        if isstaying and happened_a_while_ago:
+            new_mode = "chargeAndStay"
+
+        if new_mode is not None and new_mode != self._last_known_mode:
             self.logger.info(
                 "laststatuses: status is %s, inferring modechange from %s to %s",
                 receivedstatus,
                 self._last_known_mode,
-                "work",
+                new_mode,
             )
-            self._last_known_mode = "work"
+
+            self._last_known_mode = new_mode
             self._mode_known_since = time.time()
 
     async def notify_history_list_received(self, histlist: list[HistoryEvent]) -> None:
@@ -64,7 +79,9 @@ class SmartMode:
                 }
                 new_mode = modemap[evt.details]
                 if t > self._mode_known_since:
-                    self.logger.info("history_list: modechange to %s on %s", new_mode, evt.timestamp)
+                    self.logger.info(
+                        "history_list: modechange to %s on %s", new_mode, evt.timestamp
+                    )
                     self._last_known_mode = new_mode
                     self._mode_known_since = t
                 return
