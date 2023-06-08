@@ -31,7 +31,7 @@ def test_unknown(smart_mode: echoroboticsapi.SmartMode):
 async def test_mode_set(
     smart_mode: echoroboticsapi.SmartMode, mode: echoroboticsapi.Mode
 ):
-    await smart_mode.notify_mode_set(mode)
+    await smart_mode.notify_mode_set(mode, use_current=True)
     assert smart_mode.get_robot_mode() == mode
 
 
@@ -48,7 +48,7 @@ RETURN_TO_MODES: dict[echoroboticsapi.Status, echoroboticsapi.Mode] = {
 async def test_laststatus_then_mode(smart_mode, laststatus, mode):
     with patch("time.time", MagicMock(return_value=time.time())) as mock:
         await smart_mode.notify_laststatuses_received(laststatus)
-        await smart_mode.notify_mode_set(mode)
+        await smart_mode.notify_mode_set(mode, use_current=True)
         assert smart_mode.get_robot_mode() == mode
 
         # simulate status hasn't changed yet

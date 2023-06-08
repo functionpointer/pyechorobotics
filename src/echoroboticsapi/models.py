@@ -1,8 +1,10 @@
 import datetime
 
+import pydantic
 from pydantic import BaseModel, Field, constr, Extra, validator
 from typing import Literal
 from dateutil.parser import parse as dateutil_parse
+from enum import Enum
 
 RobotId = constr()
 Mode = Literal["chargeAndWork", "chargeAndStay", "work"]
@@ -28,6 +30,22 @@ Status = Literal[
 
 def dtparse(value):
     return dateutil_parse(value)
+
+
+class Current(BaseModel):
+    class Message(str, Enum):
+        scheduled_charge_and_work = (
+            "robot.handleActionMessage.scheduledChargeAndWorkFromStation"
+        )
+        scheduled_work = "robot.handleActionMessage.scheduledWorkFromStation"
+        scheduled_charge_and_stay = (
+            "robot.handleActionMessage.scheduledChargeAndStayFromStation"
+        )
+
+    serial_number: RobotId = Field(..., alias="SerialNumber")
+    action_id: int | None = Field(..., alias="ActionId")
+    status: pydantic.conint(ge=0, le=5) = Field(..., alias="Status")
+    message: Message | str | None = Field(..., alias="Message")
 
 
 class Position(BaseModel):

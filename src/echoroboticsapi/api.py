@@ -1,5 +1,6 @@
 import datetime
 
+import asyncio
 import pydantic
 from aiohttp import ClientSession, ClientResponse
 from yarl import URL
@@ -74,12 +75,24 @@ class Api:
             self.logger.exception(e)
             raise e
 
-    async def set_mode(self, mode: Mode, robot_id: RobotId | None = None) -> int:
+    async def set_mode(
+        self, mode: Mode, robot_id: RobotId | None = None, use_current: bool = True
+    ) -> int:
         """Set the operating mode of the robot.
 
-        Returns HTTP status code."""
+        Returns HTTP status code, or -1.
+
+        When use_current==True (the default), this method performs multiple calls to current(),
+        to evaluate if the set_mode operation worked. This is because the HTTP status code 200 just means the command
+        was received by echorobotics.com, but not by the actual robot. If the current() calls failed to verify, this method returns -1.
+        The verification process may wait up to 25 seconds for feedback from the actual robot.
+        """
         robot_id = self._get_robot_id(robot_id)
-        self.logger.debug("set_mode: mode %s for %s", mode, robot_id)
+        self.logger.debug(
+            "set_mode: mode %s for %s; use_current=%s", mode, robot_id, use_current
+        )
+
+        oldcurrent = await self.current(robot_id=robot_id)
 
         result = await self.request(
             method="POST",
@@ -90,11 +103,83 @@ class Api:
             },
         )
         if result.status == 200:
+            if use_current:
+
+                def is_confirmed(c: Current) -> bool:
+                    if c.action_id == oldcurrent.action_id:
+                        return False
+                    if c.status != 5:
+                        return False
+                    expected_modes: dict[Mode, Current.Message] = {
+                        "work": Current.Message.scheduled_work,
+                        "chargeAndWork": Current.Message.scheduled_charge_and_work,
+                        "chargeAndStay": Current.Message.scheduled_charge_and_stay,
+                    }
+                    return c.message == expected_modes[mode]
+
+                verify_start = asyncio.get_running_loop().time()
+                newcurrent: Current | None = None
+                try:
+                    async with asyncio.timeout(25) as timeout:
+                        for sleeptime in [3, 2, 2, 2] + [3] * 10:
+                            if (
+                                timeout.when() - sleeptime
+                                < asyncio.get_running_loop().time()
+                            ):
+                                # not enough time for next sleep
+                                raise asyncio.TimeoutError()
+                            await asyncio.sleep(sleeptime)
+                            newcurrent = await self.current(robot_id)
+                            if is_confirmed(newcurrent):
+                                break
+                            else:
+                                self.logger.debug("set_mode verify: %s", newcurrent)
+                except asyncio.TimeoutError:
+                    # failed to verify :/
+                    self.logger.warning(
+                        "set_mode %s failed to verify after %ss: %s",
+                        mode,
+                        asyncio.get_running_loop().time() - verify_start,
+                        newcurrent,
+                    )
+                    return -1
+                else:
+                    self.logger.info("set_mode successfully verified! %s", newcurrent)
+
             if robot_id in self.smart_modes:
-                await self.smart_modes[robot_id].notify_mode_set(mode)
+                await self.smart_modes[robot_id].notify_mode_set(
+                    mode, use_current=use_current
+                )
             else:
                 self.logger.debug(f"set_mode: no smart_mode for robot {robot_id}")
         return result.status
+
+    async def current(self, robot_id: RobotId | None = None) -> Current:
+        """Gets the status of the current operation, whatever that means
+
+        Used by set_mode when use_current==True, to verify that the set_mode operation worked
+        """
+
+        robot_id = self._get_robot_id(robot_id)
+        url = f"https://myrobot.echorobotics.com/api/RobotAction/{robot_id}/current"
+        url_obj = URL(url)
+
+        response = await self.request(method="GET", url=url_obj)
+        json = await response.json()
+        try:
+            resp = Current.parse_obj(json)
+        except pydantic.ValidationError as e:
+            self.logger.error(f"current: error was caused by json {json}")
+            self.logger.exception(e)
+            raise e
+        else:
+            if resp.serial_number != robot_id:
+                raise ValueError(
+                    "current: received different serial_number than requested"
+                )
+            if robot_id in self.smart_modes:
+                await self.smart_modes[robot_id].notify_current_received(resp)
+            return resp
 
     async def last_statuses(self) -> LastStatuses:
         url_str = "https://myrobot.echorobotics.com/api/RobotData/LastStatuses"

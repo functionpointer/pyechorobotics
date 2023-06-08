@@ -9,6 +9,7 @@ from .models import (
     HistoryEvent,
     RemoteSetModeHistoryEvent,
     RemoteSetModeHistoryEventDetails,
+    Current
 )
 
 
@@ -41,7 +42,7 @@ class SmartMode:
         """
         return self._last_known_mode
 
-    async def notify_mode_set(self, newmode: Mode) -> None:
+    async def notify_mode_set(self, newmode: Mode, use_current: bool) -> None:
         self._last_known_mode = newmode
         self._mode_known_since = time.time()
 
@@ -85,3 +86,6 @@ class SmartMode:
                     self._last_known_mode = new_mode
                     self._mode_known_since = t
                 return
+
+    async def notify_current_received(self, current: Current):
+        pass
