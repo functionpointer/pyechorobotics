@@ -48,10 +48,10 @@ class SmartMode:
     async def notify_laststatuses_received(self, receivedstatus: Status) -> None:
         ismowing: bool = receivedstatus in ["LeaveStation", "Work"]
         isstaying: bool = receivedstatus in ["Idle"]
-        happend_a_while_ago: bool = time.time() > self._mode_known_since + 60
+        happened_a_while_ago: bool = time.time() > self._mode_known_since + 60
 
         new_mode: Mode | None = None
-        if ismowing and happend_a_while_ago:
+        if ismowing and happened_a_while_ago:
             new_mode = "work"
         if isstaying and happened_a_while_ago:
             new_mode = "chargeAndStay"
