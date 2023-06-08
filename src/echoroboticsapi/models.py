@@ -34,13 +34,16 @@ def dtparse(value):
 
 class Current(BaseModel):
     class Message(str, Enum):
-        scheduled_charge_and_work = (
+        scheduled_charge_and_work_from_station = (
             "robot.handleActionMessage.scheduledChargeAndWorkFromStation"
         )
-        scheduled_work = "robot.handleActionMessage.scheduledWorkFromStation"
-        scheduled_charge_and_stay = (
+        scheduled_work_from_station = "robot.handleActionMessage.scheduledWorkFromStation"
+        scheduled_charge_and_stay_from_station = (
             "robot.handleActionMessage.scheduledChargeAndStayFromStation"
         )
+        scheduled_charge_and_stay = "robot.handleActionMessage.scheduledChargeAndStay"
+        scheduled_work = "robot.handleActionMessage.scheduledWork"
+        scheduled_charge_and_work = "robot.handleActionMessage.scheduledChargeAndWork"
 
     serial_number: RobotId = Field(..., alias="SerialNumber")
     action_id: int | None = Field(..., alias="ActionId")

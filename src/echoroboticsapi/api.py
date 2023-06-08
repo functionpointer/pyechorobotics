@@ -110,12 +110,18 @@ class Api:
                         return False
                     if c.status != 5:
                         return False
-                    expected_modes: dict[Mode, Current.Message] = {
-                        "work": Current.Message.scheduled_work,
-                        "chargeAndWork": Current.Message.scheduled_charge_and_work,
-                        "chargeAndStay": Current.Message.scheduled_charge_and_stay,
+                    expected_modes: dict[Current.Message, Mode] = {
+                        Current.Message.scheduled_work: "work",
+                        Current.Message.scheduled_work_from_station: "work",
+                        Current.Message.scheduled_charge_and_work: "chargeAndWork",
+                        Current.Message.scheduled_charge_and_work_from_station: "chargeAndWork",
+                        Current.Message.scheduled_charge_and_stay: "chargeAndStay",
+                        Current.Message.scheduled_charge_and_stay_from_station: "chargeAndStay",
                     }
-                    return c.message == expected_modes[mode]
+                    return (
+                        c.message in expected_modes
+                        and expected_modes[c.message] == mode
+                    )
 
                 verify_start = asyncio.get_running_loop().time()
                 newcurrent: Current | None = None
