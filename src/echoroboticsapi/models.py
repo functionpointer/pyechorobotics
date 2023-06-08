@@ -37,7 +37,9 @@ class Current(BaseModel):
         scheduled_charge_and_work_from_station = (
             "robot.handleActionMessage.scheduledChargeAndWorkFromStation"
         )
-        scheduled_work_from_station = "robot.handleActionMessage.scheduledWorkFromStation"
+        scheduled_work_from_station = (
+            "robot.handleActionMessage.scheduledWorkFromStation"
+        )
         scheduled_charge_and_stay_from_station = (
             "robot.handleActionMessage.scheduledChargeAndStayFromStation"
         )
