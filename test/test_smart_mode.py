@@ -61,4 +61,3 @@ async def test_laststatus_then_mode(smart_mode, laststatus, mode):
         mock.return_value += 120
         await smart_mode.notify_laststatuses_received(laststatus)
         assert smart_mode.get_robot_mode() == RETURN_TO_MODES.get(laststatus, mode)
-

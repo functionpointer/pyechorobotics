@@ -114,7 +114,9 @@ class Api:
         else:
             for si in resp.statuses_info:
                 if si.robot in self.smart_modes:
-                    await self.smart_modes[si.robot].notify_laststatuses_received(si.status)
+                    await self.smart_modes[si.robot].notify_laststatuses_received(
+                        si.status
+                    )
             return resp
 
     async def history_list(
