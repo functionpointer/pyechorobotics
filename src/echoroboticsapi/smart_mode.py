@@ -9,7 +9,7 @@ from .models import (
     HistoryEvent,
     RemoteSetModeHistoryEvent,
     RemoteSetModeHistoryEventDetails,
-    Current
+    Current,
 )
 
 

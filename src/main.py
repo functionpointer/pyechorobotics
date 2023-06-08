@@ -45,7 +45,6 @@ async def main():
         print(f"robot_mode guess: {smartmode.get_robot_mode()}")
 
 
-
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
     loop = asyncio.new_event_loop()
