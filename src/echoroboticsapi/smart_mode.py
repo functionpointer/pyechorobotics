@@ -81,7 +81,7 @@ class SmartMode:
                 new_mode = modemap[evt.details]
                 if t > self._mode_known_since:
                     self.logger.info(
-                        "history_list: modechange to %s on %s", new_mode, evt.timestamp
+                        "history_list: modechange to %s on %s", new_mode, evt.timestamp.astimezone()
                     )
                     self._last_known_mode = new_mode
                     self._mode_known_since = t

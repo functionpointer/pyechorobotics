@@ -3,7 +3,7 @@ import datetime
 import pydantic
 from pydantic import BaseModel, Field, constr, Extra, validator
 from typing import Literal
-from dateutil.parser import parse as dateutil_parse
+from dateutil.parser import isoparse as dateutil_isoparse
 from enum import Enum
 
 RobotId = constr()
@@ -28,9 +28,13 @@ Status = Literal[
 ]
 
 
-def dtparse(value):
-    return dateutil_parse(value)
-
+def dtparse(value) -> datetime.datetime:
+    ret = dateutil_isoparse(value)
+    is_aware = ret.tzinfo is not None and ret.tzinfo.utcoffset(d) is not None
+    if not is_aware:
+      raise ValueError(f"failed to find timezone in: {value}")
+    return ret
+  
 
 class Current(BaseModel):
     class Message(str, Enum):
