@@ -35,13 +35,13 @@ async def main():
 
         print(f"last_statuses: {await api.history_list()}")
 
-        # print(f"last_statuses: {await api.last_statuses()}")
+        print(f"last_statuses: {await api.last_statuses()}")
 
         await asyncio.sleep(0.5)
         print(f"robot_mode guess: {smartmode.get_robot_mode()}")
 
         print(f"current: {await api.current()}")
-        print(f"setmode chargeAndWork: {await api.set_mode('chargeAndWork')}")
+        # print(f"setmode chargeAndWork: {await api.set_mode('chargeAndWork')}")
         print(f"robot_mode guess: {smartmode.get_robot_mode()}")
 
 

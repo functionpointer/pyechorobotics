@@ -30,11 +30,11 @@ Status = Literal[
 
 def dtparse(value) -> datetime.datetime:
     ret = dateutil_isoparse(value)
-    is_aware = ret.tzinfo is not None and ret.tzinfo.utcoffset(d) is not None
+    is_aware = ret.tzinfo is not None and ret.tzinfo.utcoffset(ret) is not None
     if not is_aware:
-      raise ValueError(f"failed to find timezone in: {value}")
+        raise ValueError(f"failed to find timezone in: {value}")
     return ret
-  
+
 
 class Current(BaseModel):
     class Message(str, Enum):
