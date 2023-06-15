@@ -27,6 +27,7 @@ Status = Literal[
     "BorderDiscovery",
 ]
 
+
 def dtparse(value) -> datetime.datetime:
     ret = dateutil_isoparse(value)
     is_aware = ret.tzinfo is not None and ret.tzinfo.utcoffset(ret) is not None
@@ -126,7 +127,7 @@ class GetConfig(BaseModel, extra=Extra.ignore):
     config_date_time: datetime.datetime | None = Field(..., alias="ConfigDateTime")
     config_validated: bool = Field(..., alias="ConfigValidated")
 
-    @validator('config_date_time', pre=True)
+    @validator("config_date_time", pre=True)
     def _normalize_config_date_time(cls, v):
         if v == "0001-01-01T00:00:00":
             return None
@@ -135,7 +136,7 @@ class GetConfig(BaseModel, extra=Extra.ignore):
 
     @root_validator
     def _check_date_time_none(cls, values):
-        if values.get('config_date_time') is None and values.get('config_validated'):
+        if values.get("config_date_time") is None and values.get("config_validated"):
             raise ValueError(f"config_date_time is None, but config_validated is True?")
         return values
 
