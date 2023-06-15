@@ -1,7 +1,10 @@
 pyechorobotics
 =============
 
-![echorobotics_logo](https://brands.home-assistant.io/_/echorobotics/logo@2x.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://brands.home-assistant.io/_/echorobotics/dark_logo@2x.png">
+  <img alt="Echorobotics Logo" src="https://brands.home-assistant.io/_/echorobotics/logo@2x.png">
+</picture>
 
 Allows control and reads status of robot lawn mowers by echorobotics.
 
