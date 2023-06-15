@@ -33,6 +33,8 @@ async def main():
         smartmode = echoroboticsapi.SmartMode(robot_id)
         api.register_smart_mode(smartmode)
 
+        print(f"config: {await api.get_config(reload=True)}")
+
         print(f"last_statuses: {await api.history_list()}")
 
         print(f"last_statuses: {await api.last_statuses()}")

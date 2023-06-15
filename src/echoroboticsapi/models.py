@@ -1,7 +1,7 @@
 import datetime
 
 import pydantic
-from pydantic import BaseModel, Field, constr, Extra, validator
+from pydantic import BaseModel, Field, constr, Extra, validator, root_validator
 from typing import Literal
 from dateutil.parser import isoparse as dateutil_isoparse
 from enum import Enum
@@ -26,7 +26,6 @@ Status = Literal[
     "BorderCheck",
     "BorderDiscovery",
 ]
-
 
 def dtparse(value) -> datetime.datetime:
     ret = dateutil_isoparse(value)
@@ -124,12 +123,21 @@ class GetConfig(BaseModel, extra=Extra.ignore):
     data: GetConfigData | None = Field(..., alias="Data")
     config_id: int = Field(..., alias="ConfigId")
     config_version_id: int = Field(..., alias="ConfigVersionId")
-    config_date_time: datetime.datetime = Field(..., alias="ConfigDateTime")
+    config_date_time: datetime.datetime | None = Field(..., alias="ConfigDateTime")
     config_validated: bool = Field(..., alias="ConfigValidated")
 
-    _normalize_config_date_time = validator(
-        "config_date_time", pre=True, allow_reuse=True
-    )(dtparse)
+    @validator('config_date_time', pre=True)
+    def _normalize_config_date_time(cls, v):
+        if v == "0001-01-01T00:00:00":
+            return None
+        else:
+            return dtparse(v)
+
+    @root_validator
+    def _check_date_time_none(cls, values):
+        if values.get('config_date_time') is None and values.get('config_validated'):
+            raise ValueError(f"config_date_time is None, but config_validated is True?")
+        return values
 
 
 class BaseHistoryEvent(BaseModel, extra=Extra.ignore):

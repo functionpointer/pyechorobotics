@@ -71,7 +71,7 @@ class Api:
             resp = GetConfig.parse_obj(json)
             return resp
         except pydantic.ValidationError as e:
-            self.logger.error(f"error was caused by json {json}")
+            self.logger.error(f"get_config: error was caused by json {json}")
             self.logger.exception(e)
             raise e
 
