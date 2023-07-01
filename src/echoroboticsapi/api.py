@@ -64,6 +64,7 @@ class Api:
             f"https://myrobot.echorobotics.com/api/RobotConfig/GetConfig/{robot_id}"
         )
         result = await self.request(method="GET", url=url % {"reload": str(reload)})
+        result.raise_for_status()
         json = await result.json()
 
         self.logger.debug(f"got json {json}")
@@ -237,6 +238,7 @@ class Api:
                 "SerialNumber": robot_id,
             },
         )
+        response.raise_for_status()
         json = await response.json()
         try:
             resp = []
