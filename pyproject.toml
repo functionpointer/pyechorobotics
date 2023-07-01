@@ -1,6 +1,6 @@
 [project]
 name = "pyechorobotics"
-version = "0.0.14"
+version = "0.0.15"
 dependencies = [
     "aiohttp",
     "yarl",
