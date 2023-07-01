@@ -50,8 +50,10 @@ class Current(BaseModel):
         scheduled_charge_and_stay = "robot.handleActionMessage.scheduledChargeAndStay"
         scheduled_work = "robot.handleActionMessage.scheduledWork"
         scheduled_charge_and_work = "robot.handleActionMessage.scheduledChargeAndWork"
-        
-        scheduled_charge_and_stay_denied_by_robot = "robot.handleActionMessage.scheduledChargeAndStayDeniedByRobot"
+
+        scheduled_charge_and_stay_denied_by_robot = (
+            "robot.handleActionMessage.scheduledChargeAndStayDeniedByRobot"
+        )
 
     serial_number: RobotId = Field(..., alias="SerialNumber")
     action_id: int | None = Field(..., alias="ActionId")
