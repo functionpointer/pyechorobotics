@@ -2,12 +2,14 @@ import datetime
 
 import pydantic
 from pydantic import (
+    field_validator,
+    model_validator,
     BaseModel,
     Field,
     constr,
     Extra,
     validator,
-    root_validator,
+    RootModel,
 )
 from typing import Literal
 from dateutil.parser import isoparse as dateutil_isoparse
@@ -73,7 +75,7 @@ class Position(BaseModel):
     latitude: float = Field(..., alias="Latitude")
     date_time: datetime.datetime = Field(..., alias="DateTime")
 
-    _normalize_date_time = validator("date_time", pre=True, allow_reuse=True)(dtparse)
+    _normalize_date_time = field_validator("date_time", mode="before")(dtparse)
 
 
 class StatusInfo(BaseModel):
@@ -88,8 +90,8 @@ class StatusInfo(BaseModel):
     has_values: bool = Field(..., alias="HasValues")
     is_online: bool = Field(..., alias="IsOnline")
 
-    _normalize_date = validator("date", pre=True, allow_reuse=True)(dtparse)
-    _normalize_query_time = validator("query_time", pre=True, allow_reuse=True)(dtparse)
+    _normalize_date = field_validator("date", mode="before")(dtparse)
+    _normalize_query_time = field_validator("query_time", mode="before")(dtparse)
 
 
 class LastStatuses(BaseModel):
@@ -98,14 +100,14 @@ class LastStatuses(BaseModel):
     statuses_info: list[StatusInfo] = Field(..., alias="StatusesInfo")
     robot_offline_delay_in_seconds: int = Field(..., alias="RobotOfflineDelayInSeconds")
 
-    _normalize_query_date = validator("query_date", pre=True, allow_reuse=True)(dtparse)
+    _normalize_query_date = field_validator("query_date", mode="before")(dtparse)
 
 
-class NavigationProfileUserParameters(BaseModel, extra=Extra.ignore):
+class NavigationProfileUserParameters(BaseModel, extra="ignore"):
     robot_name: str = Field(..., alias="RobotName")
 
 
-class NavigationProfileInstance(BaseModel, extra=Extra.ignore):
+class NavigationProfileInstance(BaseModel, extra="ignore"):
     has_gps_rtk: bool = Field(..., alias="HasGpsRTK")
     has_vsb: bool = Field(..., alias="HasVSB")
     user_parameters: NavigationProfileUserParameters = Field(
@@ -113,11 +115,11 @@ class NavigationProfileInstance(BaseModel, extra=Extra.ignore):
     )
 
 
-class ServoControlProfileInstance(BaseModel, extra=Extra.ignore):
+class ServoControlProfileInstance(BaseModel, extra="ignore"):
     current_cutting_height: int = Field(..., alias="CurrentCuttingHeight")
 
 
-class GetConfigData(BaseModel, extra=Extra.ignore):
+class GetConfigData(BaseModel, extra="ignore"):
     brain_version: str = Field(..., alias="BrainVersion")
     image_version: str = Field(..., alias="ImageVersion")
     navigation_profile_instance: NavigationProfileInstance = Field(
@@ -128,7 +130,7 @@ class GetConfigData(BaseModel, extra=Extra.ignore):
     )
 
 
-class GetConfig(BaseModel, extra=Extra.ignore):
+class GetConfig(BaseModel, extra="ignore"):
     is_error: bool = Field(..., alias="IsError")
     is_in_progress: bool = Field(..., alias="IsInProgress")
     message: str | None = Field(..., alias="Message")
@@ -138,25 +140,27 @@ class GetConfig(BaseModel, extra=Extra.ignore):
     config_date_time: datetime.datetime | None = Field(..., alias="ConfigDateTime")
     config_validated: bool = Field(..., alias="ConfigValidated")
 
-    @validator("config_date_time", pre=True)
+    @field_validator("config_date_time", mode="before")
+    @classmethod
     def _normalize_config_date_time(cls, v):
         if v == "0001-01-01T00:00:00":
             return None
         else:
             return dtparse(v)
 
-    @root_validator(skip_on_failure=True)
+    @model_validator(mode="after")
+    @classmethod
     def _check_date_time_none(cls, values):
         if values.get("config_date_time") is None and values.get("config_validated"):
             raise ValueError(f"config_date_time is None, but config_validated is True?")
         return values
 
 
-class BaseHistoryEvent(BaseModel, extra=Extra.ignore):
+class BaseHistoryEvent(BaseModel, extra="ignore"):
     timestamp: datetime.datetime = Field(..., alias="TS")
     duration: datetime.timedelta = Field(..., alias="FD")
 
-    _normalize_timestamp = validator("timestamp", pre=True, allow_reuse=True)(dtparse)
+    _normalize_timestamp = field_validator("timestamp", mode="before")(dtparse)
 
     def __lt__(self, other):
         if isinstance(other, BaseHistoryEvent):
@@ -194,8 +198,8 @@ class RemoteSetModeHistoryEvent(KnownHistoryEvent):
 HistoryEvent = RemoteSetModeHistoryEvent | UnknownHistoryEvent
 
 
-class HistoryEventCombinedModel(BaseModel):
-    __root__: RemoteSetModeHistoryEvent | UnknownHistoryEvent
+class HistoryEventCombinedModel(RootModel):
+    root: RemoteSetModeHistoryEvent | UnknownHistoryEvent
 
     def __eq__(self, other):
         if isinstance(other, HistoryEventCombinedModel):
