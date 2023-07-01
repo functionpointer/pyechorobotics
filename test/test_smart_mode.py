@@ -39,6 +39,7 @@ async def test_mode_set(
 RETURN_TO_MODES: dict[echoroboticsapi.Status, echoroboticsapi.Mode] = {
     "Idle": "chargeAndStay",
     "Work": "work",
+    "Border": "work",
     "LeaveStation": "work",
 }
 

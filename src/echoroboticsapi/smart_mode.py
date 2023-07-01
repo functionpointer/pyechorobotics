@@ -47,7 +47,7 @@ class SmartMode:
         self._mode_known_since = time.time()
 
     async def notify_laststatuses_received(self, receivedstatus: Status) -> None:
-        ismowing: bool = receivedstatus in ["LeaveStation", "Work"]
+        ismowing: bool = receivedstatus in ["LeaveStation", "Work", "Border"]
         isstaying: bool = receivedstatus in ["Idle"]
         happened_a_while_ago: bool = time.time() > self._mode_known_since + 60
 
