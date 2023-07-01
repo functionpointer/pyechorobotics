@@ -1,7 +1,14 @@
 import datetime
 
 import pydantic
-from pydantic import BaseModel, Field, constr, Extra, validator, root_validator
+from pydantic import (
+    BaseModel,
+    Field,
+    constr,
+    Extra,
+    validator,
+    root_validator,
+)
 from typing import Literal
 from dateutil.parser import isoparse as dateutil_isoparse
 from enum import Enum
@@ -138,7 +145,7 @@ class GetConfig(BaseModel, extra=Extra.ignore):
         else:
             return dtparse(v)
 
-    @root_validator
+    @root_validator(skip_on_failure=True)
     def _check_date_time_none(cls, values):
         if values.get("config_date_time") is None and values.get("config_validated"):
             raise ValueError(f"config_date_time is None, but config_validated is True?")
