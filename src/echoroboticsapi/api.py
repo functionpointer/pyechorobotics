@@ -118,6 +118,7 @@ class Api:
                         Current.Message.scheduled_charge_and_work_from_station: "chargeAndWork",
                         Current.Message.scheduled_charge_and_stay: "chargeAndStay",
                         Current.Message.scheduled_charge_and_stay_from_station: "chargeAndStay",
+                        Current.Message.already_in_work: "work",
                     }
                     return (
                         c.message in expected_modes

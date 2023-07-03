@@ -61,6 +61,7 @@ class Current(BaseModel):
         scheduled_charge_and_stay_denied_by_robot = (
             "robot.handleActionMessage.scheduledChargeAndStayDeniedByRobot"
         )
+        already_in_work = "robot.handleActionMessage.alreadyInWork"
 
     serial_number: RobotId = Field(..., alias="SerialNumber")
     action_id: int | None = Field(..., alias="ActionId")
