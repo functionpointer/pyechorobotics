@@ -8,6 +8,8 @@ pyechorobotics
 
 Allows control and reads status of robot lawn mowers by echorobotics.
 
+Used by [Home Assistant Echorobotics integration](https://github.com/functionpointer/home-assistant-echorobotics-integration).
+
 Example:
 ```python
 import sys
