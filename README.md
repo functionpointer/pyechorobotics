@@ -81,3 +81,4 @@ If a new state is found, it must be added to ``models.py``.
 Also check ``notify_laststatuses_received()`` in ```smart_mode.py``` if it should be recognized as a specific Mode.
 
 Finally, in home-assistant-echorobotics-integration, increment the version number in the manifest.json.
+Also check the translations in echorobotics/translations, and any custom dashboard code.
