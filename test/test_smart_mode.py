@@ -43,6 +43,7 @@ RETURN_TO_MODES: dict[echoroboticsapi.Status, echoroboticsapi.Mode] = {
     "LeaveStation": "work",
     "Offline": "chargeAndStay",
     "Off": "chargeAndStay",
+    "OffAfterAlarm": "chargeAndStay",
 }
 
 
