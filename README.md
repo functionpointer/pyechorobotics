@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
 ```
 
-Unfortunately, the API doesn't tell is which mode the robot is in.
+Unfortunately, the API doesn't tell is which mode ("chargeAndWork", "work" or "chargeAndStay") the robot is in.
 We can make an educated guess though, depending on what we set ourselves, history events and the status.
 This is what SmartMode does:
 
@@ -66,3 +66,18 @@ if __name__ == "__main__":
 ```
 
 See also src/main.py
+
+Dev notes
+=========
+
+To make a new release, use GitHub website and draft a release manually.
+Make sure the version number in pyproject.toml matches the new tag.
+GitHub Actions will publish it to pypi.
+
+Adding a new state
+------------------
+
+If a new state is found, it must be added to ``models.py``.
+Also check ``notify_laststatuses_received()`` in ```smart_mode.py``` if it should be recognized as a specific Mode.
+
+Finally, in home-assistant-echorobotics-integration, increment the version number in the manifest.json.
