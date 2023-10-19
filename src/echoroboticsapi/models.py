@@ -32,6 +32,7 @@ Status = Literal[
     "Border",
     "BorderCheck",
     "BorderDiscovery",
+    "OffAfterAlarm",
 ]
 
 
