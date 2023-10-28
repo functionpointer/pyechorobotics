@@ -69,6 +69,22 @@ class SmartMode:
             self._mode_known_since = time.time()
 
     async def notify_history_list_received(self, histlist: list[HistoryEvent]) -> None:
+        """Called by history_list() whenever one was downloaded.
+
+        The history contains lots of details, most of which are not helpful for smart_mode.
+        However, it does contain RemoteSetMode events, whenever one of the buttons in the app is pressed.
+
+        Unfortunately, the history is quite delayed. As a result, the history is rarely responsible for a mode change.
+        Basically it only happens when a mode change is initiated by a third party (not set_mode()) and that mode change
+        does NOT cause the status to change to something conclusive (as seen in ismowing and isstaying).
+
+        Example: Robot was mowing, then went to charge. While charging someone sends mode "chargeAndStay".
+        The robot state will stay at "Charge". We only notice that once it is done charging, where it will change to "Idle" instead of the expected "LeaveStation"
+        Depending on timing, the history event could show up first.
+
+        2nd Example: Robot is mowing, then someone sends "chargeAndStay". Same deal as above, status only tells is once the battery is full.
+        History will tell us once it shows up
+        """
         for evt in histlist:
             if isinstance(evt, RemoteSetModeHistoryEvent):
                 self.logger.debug("processing %s", evt.timestamp)

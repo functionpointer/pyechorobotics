@@ -37,6 +37,8 @@ Status = Literal[
 
 
 def dtparse(value) -> datetime.datetime:
+    if isinstance(value, datetime.datetime):
+        return value
     ret = dateutil_isoparse(value)
     is_aware = ret.tzinfo is not None and ret.tzinfo.utcoffset(ret) is not None
     if not is_aware:
@@ -77,6 +79,9 @@ class Position(BaseModel):
 
     _normalize_date_time = validator("date_time", pre=True, allow_reuse=True)(dtparse)
 
+    class Config:
+        allow_population_by_field_name = True
+
 
 class StatusInfo(BaseModel):
     robot: RobotId = Field(..., alias="Robot")
@@ -93,6 +98,9 @@ class StatusInfo(BaseModel):
     _normalize_date = validator("date", pre=True, allow_reuse=True)(dtparse)
     _normalize_query_time = validator("query_time", pre=True, allow_reuse=True)(dtparse)
 
+    class Config:
+        allow_population_by_field_name = True
+
 
 class LastStatuses(BaseModel):
     query_date: datetime.datetime = Field(..., alias="QueryDate")
@@ -101,6 +109,9 @@ class LastStatuses(BaseModel):
     robot_offline_delay_in_seconds: int = Field(..., alias="RobotOfflineDelayInSeconds")
 
     _normalize_query_date = validator("query_date", pre=True, allow_reuse=True)(dtparse)
+
+    class Config:
+        allow_population_by_field_name = True
 
 
 class NavigationProfileUserParameters(BaseModel, extra=Extra.ignore):

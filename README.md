@@ -55,7 +55,7 @@ async def main():
         
         print(await api.history_list())
         print(await api.last_statuses())
-        print(await smartmode.get_robot_mode())
+        print(smartmode.get_robot_mode())
 
 
 if __name__ == "__main__":
@@ -66,6 +66,41 @@ if __name__ == "__main__":
 ```
 
 See also src/main.py
+
+SmartFetch
+==========
+
+While calling `last_statuses()` and `history_list()` regularly (suggestion every 2min and 15min), this is somewhat wasteful of bandwidth.
+Especially ``history_list()`` uses some 60KiB of data volume. If calling this every 15mins is an issue for you, you may be interested in
+SmartFetch.
+
+```python
+import sys
+
+import echoroboticsapi
+import aiohttp
+import asyncio
+import logging
+
+
+async def main():
+    async with aiohttp.ClientSession(cookies=echoroboticsapi.create_cookies(user_id="your-user-id", user_token="user-user-token")) as session:
+        api = echoroboticsapi.Api(session, robot_ids=["your-robot-id"])
+        smartmode = echoroboticsapi.SmartMode("your-robot-id")
+        api.register_smart_mode(smartmode)
+        smartfetch = echoroboticsapi.SmartFetch(api)
+        
+        last_statuses = await smartfetch.smart_fetch()
+        print(last_statuses)
+        print(smartmode.get_robot_mode())
+
+
+if __name__ == "__main__":
+    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+    loop = asyncio.new_event_loop()
+    loop.run_until_complete(main())
+
+```
 
 Dev notes
 =========
