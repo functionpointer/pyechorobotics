@@ -64,11 +64,14 @@ class Current(BaseModel):
         scheduled_charge_and_stay_denied_by_robot = (
             "robot.handleActionMessage.scheduledChargeAndStayDeniedByRobot"
         )
+        scheduled_work_denied_by_robot = (
+            "robot.handleActionMessage.scheduledWorkDeniedByRobot"
+        )
         already_in_work = "robot.handleActionMessage.alreadyInWork"
 
     serial_number: RobotId = Field(..., alias="SerialNumber")
     action_id: int | None = Field(..., alias="ActionId")
-    status: pydantic.conint(ge=0, le=5) = Field(..., alias="Status")
+    status: pydantic.conint(ge=0, le=6) = Field(..., alias="Status")
     message: Message | str | None = Field(..., alias="Message")
 
 

@@ -106,11 +106,11 @@ class Api:
         if result.status == 200:
             if use_current:
 
-                def is_confirmed(c: Current) -> bool:
+                def is_confirmed(c: Current) -> Literal["confirm", "unknown", "denied"]:
                     if c.action_id == oldcurrent.action_id:
-                        return False
-                    if c.status != 5:
-                        return False
+                        return "unknown"
+                    if c.status < 5:
+                        return "unknown"
                     expected_modes: dict[Current.Message, Mode] = {
                         Current.Message.scheduled_work: "work",
                         Current.Message.scheduled_work_from_station: "work",
@@ -120,10 +120,11 @@ class Api:
                         Current.Message.scheduled_charge_and_stay_from_station: "chargeAndStay",
                         Current.Message.already_in_work: "work",
                     }
-                    return (
+                    ret = (
                         c.message in expected_modes
                         and expected_modes[c.message] == mode
                     )
+                    return "confirm" if ret else "denied"
 
                 verify_start = asyncio.get_running_loop().time()
                 newcurrent: Current | None = None
@@ -138,10 +139,14 @@ class Api:
                                 raise asyncio.TimeoutError()
                             await asyncio.sleep(sleeptime)
                             newcurrent = await self.current(robot_id)
-                            if is_confirmed(newcurrent):
-                                break
-                            else:
-                                self.logger.debug("set_mode verify: %s", newcurrent)
+                            conf = is_confirmed(newcurrent)
+                            match conf:
+                                case "confirm":
+                                    break
+                                case "denied":
+                                    raise asyncio.TimeoutError()
+                                case "unknown":
+                                    self.logger.debug("set_mode verify: %s", newcurrent)
                 except asyncio.TimeoutError:
                     # failed to verify :/
                     self.logger.warning(
