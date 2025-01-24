@@ -34,9 +34,9 @@ def api(client_session: aiohttp.ClientSession, robot_id: echoroboticsapi.RobotId
 async def test_get_config(
     robot_id: RobotId, api: echoroboticsapi.Api, mock_aioresponse
 ):
-    mock_json = "{'IsError': True, 'IsInProgress': False, 'Message': 'configurator.messages.robotOffline', 'Data': None, 'Descriptors': None, 'ConfigId': 0, 'ConfigVersionId': 0, 'ConfigDateTime': '0001-01-01T00:00:00', 'ConfigValidated': False}"
+    mock_json = '{"IsError": true, "IsInProgress": false, "Message": "configurator.messages.robotOffline", "Data": null, "Descriptors": null, "ConfigId": 0, "ConfigVersionId": 0, "ConfigDateTime": "0001-01-01T00:00:00", "ConfigValidated": false}'
     expected_url = f"https://myrobot.echorobotics.com/api/RobotConfig/GetConfig/{robot_id}?reload=False"
-    mock_aioresponse.get(expected_url, payload=mock_json)
+    mock_aioresponse.get(expected_url, body=mock_json)
 
     resp = await api.get_config(reload=False, robot_id=robot_id)
 

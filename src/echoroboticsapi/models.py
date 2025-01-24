@@ -10,8 +10,9 @@ from pydantic import (
     Extra,
     validator,
     RootModel,
+    ConfigDict,
 )
-from typing import Literal
+from typing import Literal, Self
 from dateutil.parser import isoparse as dateutil_isoparse
 from enum import Enum
 
@@ -49,6 +50,8 @@ def dtparse(value) -> datetime.datetime:
 
 
 class Current(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     class Message(str, Enum):
         scheduled_charge_and_work_from_station = (
             "robot.handleActionMessage.scheduledChargeAndWorkFromStation"
@@ -71,87 +74,97 @@ class Current(BaseModel):
         )
         already_in_work = "robot.handleActionMessage.alreadyInWork"
 
-    serial_number: RobotId = Field(..., serialization_alias="SerialNumber")
-    action_id: int | None = Field(..., serialization_alias="ActionId")
-    status: pydantic.conint(ge=0, le=6) = Field(..., serialization_alias="Status")
-    message: Message | str | None = Field(..., serialization_alias="Message")
+    serial_number: RobotId = Field(..., alias="SerialNumber")
+    action_id: int | None = Field(..., alias="ActionId")
+    status: pydantic.conint(ge=0, le=6) = Field(..., alias="Status")
+    message: Message | str | None = Field(..., alias="Message")
 
 
 class Position(BaseModel):
-    longitude: float = Field(..., serialization_alias="Longitude")
-    latitude: float = Field(..., serialization_alias="Latitude")
-    date_time: datetime.datetime = Field(..., serialization_alias="DateTime")
+    model_config = ConfigDict(populate_by_name=True)
+
+    longitude: float = Field(..., alias="Longitude")
+    latitude: float = Field(..., alias="Latitude")
+    date_time: datetime.datetime = Field(..., alias="DateTime")
 
     _normalize_date_time = field_validator("date_time", mode="before")(dtparse)
 
 
 class StatusInfo(BaseModel):
-    robot: RobotId = Field(..., serialization_alias="Robot")
-    status: Status = Field(..., serialization_alias="Status")
-    mac_address: str = Field(..., serialization_alias="MacAddress")
-    date: datetime.datetime = Field(..., serialization_alias="Date")
-    delta: str = Field(..., serialization_alias="Delta")
-    estimated_battery_level: float = Field(
-        ..., serialization_alias="EstimatedBatteryLevel"
-    )
-    position: Position = Field(..., serialization_alias="Position")
-    query_time: datetime.datetime = Field(..., serialization_alias="QueryTime")
-    has_values: bool = Field(..., serialization_alias="HasValues")
-    is_online: bool = Field(..., serialization_alias="IsOnline")
+    model_config = ConfigDict(populate_by_name=True)
+
+    robot: RobotId = Field(..., alias="Robot")
+    status: Status = Field(..., alias="Status")
+    mac_address: str = Field(..., alias="MacAddress")
+    date: datetime.datetime = Field(..., alias="Date")
+    delta: str = Field(..., alias="Delta")
+    estimated_battery_level: float = Field(..., alias="EstimatedBatteryLevel")
+    position: Position = Field(..., alias="Position")
+    query_time: datetime.datetime = Field(..., alias="QueryTime")
+    has_values: bool = Field(..., alias="HasValues")
+    is_online: bool = Field(..., alias="IsOnline")
 
     _normalize_date = field_validator("date", mode="before")(dtparse)
     _normalize_query_time = field_validator("query_time", mode="before")(dtparse)
 
 
 class LastStatuses(BaseModel):
-    query_date: datetime.datetime = Field(..., serialization_alias="QueryDate")
-    robots: list[RobotId] = Field(..., serialization_alias="Robots")
-    statuses_info: list[StatusInfo] = Field(..., serialization_alias="StatusesInfo")
-    robot_offline_delay_in_seconds: int = Field(
-        ..., serialization_alias="RobotOfflineDelayInSeconds"
-    )
+    model_config = ConfigDict(populate_by_name=True)
+
+    query_date: datetime.datetime = Field(..., alias="QueryDate")
+    robots: list[RobotId] = Field(..., alias="Robots")
+    statuses_info: list[StatusInfo] = Field(..., alias="StatusesInfo")
+    robot_offline_delay_in_seconds: int = Field(..., alias="RobotOfflineDelayInSeconds")
 
     _normalize_query_date = field_validator("query_date", mode="before")(dtparse)
 
 
 class NavigationProfileUserParameters(BaseModel, extra="ignore"):
-    robot_name: str = Field(..., serialization_alias="RobotName")
+    model_config = ConfigDict(populate_by_name=True)
+
+    robot_name: str = Field(..., alias="RobotName")
 
 
 class NavigationProfileInstance(BaseModel, extra="ignore"):
-    has_gps_rtk: bool = Field(..., serialization_alias="HasGpsRTK")
-    has_vsb: bool = Field(..., serialization_alias="HasVSB")
+    model_config = ConfigDict(populate_by_name=True)
+
+    has_gps_rtk: bool = Field(..., alias="HasGpsRTK")
+    has_vsb: bool = Field(..., alias="HasVSB")
     user_parameters: NavigationProfileUserParameters = Field(
-        ..., serialization_alias="UserParameters"
+        ..., alias="UserParameters"
     )
 
 
 class ServoControlProfileInstance(BaseModel, extra="ignore"):
-    current_cutting_height: int = Field(..., serialization_alias="CurrentCuttingHeight")
+    model_config = ConfigDict(populate_by_name=True)
+
+    current_cutting_height: int = Field(..., alias="CurrentCuttingHeight")
 
 
 class GetConfigData(BaseModel, extra="ignore"):
-    brain_version: str = Field(..., serialization_alias="BrainVersion")
-    image_version: str = Field(..., serialization_alias="ImageVersion")
+    model_config = ConfigDict(populate_by_name=True)
+
+    brain_version: str = Field(..., alias="BrainVersion")
+    image_version: str = Field(..., alias="ImageVersion")
     navigation_profile_instance: NavigationProfileInstance = Field(
-        ..., serialization_alias="NavigationProfileInstance"
+        ..., alias="NavigationProfileInstance"
     )
     servo_control_profile_instance: ServoControlProfileInstance = Field(
-        ..., serialization_alias="ServoControlProfileInstance"
+        ..., alias="ServoControlProfileInstance"
     )
 
 
 class GetConfig(BaseModel, extra="ignore"):
-    is_error: bool = Field(..., serialization_alias="IsError")
-    is_in_progress: bool = Field(..., serialization_alias="IsInProgress")
-    message: str | None = Field(..., serialization_alias="Message")
-    data: GetConfigData | None = Field(..., serialization_alias="Data")
-    config_id: int = Field(..., serialization_alias="ConfigId")
-    config_version_id: int = Field(..., serialization_alias="ConfigVersionId")
-    config_date_time: datetime.datetime | None = Field(
-        ..., serialization_alias="ConfigDateTime"
-    )
-    config_validated: bool = Field(..., serialization_alias="ConfigValidated")
+    model_config = ConfigDict(populate_by_name=True)
+
+    is_error: bool = Field(..., alias="IsError")
+    is_in_progress: bool = Field(..., alias="IsInProgress")
+    message: str | None = Field(..., alias="Message")
+    data: GetConfigData | None = Field(..., alias="Data")
+    config_id: int = Field(..., alias="ConfigId")
+    config_version_id: int = Field(..., alias="ConfigVersionId")
+    config_date_time: datetime.datetime | None = Field(..., alias="ConfigDateTime")
+    config_validated: bool = Field(..., alias="ConfigValidated")
 
     @field_validator("config_date_time", mode="before")
     @classmethod
@@ -162,16 +175,17 @@ class GetConfig(BaseModel, extra="ignore"):
             return dtparse(v)
 
     @model_validator(mode="after")
-    @classmethod
-    def _check_date_time_none(cls, values):
-        if values.get("config_date_time") is None and values.get("config_validated"):
+    def _check_date_time_none(self) -> Self:
+        if self.config_date_time is None and self.config_validated:
             raise ValueError(f"config_date_time is None, but config_validated is True?")
-        return values
+        return self
 
 
 class BaseHistoryEvent(BaseModel, extra="ignore"):
-    timestamp: datetime.datetime = Field(..., serialization_alias="TS")
-    duration: datetime.timedelta = Field(..., serialization_alias="FD")
+    model_config = ConfigDict(populate_by_name=True)
+
+    timestamp: datetime.datetime = Field(..., alias="TS")
+    duration: datetime.timedelta = Field(..., alias="FD")
 
     _normalize_timestamp = field_validator("timestamp", mode="before")(dtparse)
 
@@ -189,13 +203,17 @@ class BaseHistoryEvent(BaseModel, extra="ignore"):
 
 
 class UnknownHistoryEvent(BaseHistoryEvent):
-    event: str = Field(..., serialization_alias="SE")
-    details: str | None = Field(..., serialization_alias="D")
-    state: str = Field(..., serialization_alias="SS")
+    model_config = ConfigDict(populate_by_name=True)
+
+    event: str = Field(..., alias="SE")
+    details: str | None = Field(..., alias="D")
+    state: str = Field(..., alias="SS")
 
 
 class KnownHistoryEvent(BaseHistoryEvent):
-    state: Status = Field(..., serialization_alias="SS")
+    model_config = ConfigDict(populate_by_name=True)
+
+    state: Status = Field(..., alias="SS")
 
 
 RemoteSetModeHistoryEventDetails = Literal[
@@ -204,8 +222,10 @@ RemoteSetModeHistoryEventDetails = Literal[
 
 
 class RemoteSetModeHistoryEvent(KnownHistoryEvent):
-    event: Literal["RemoteSetMode"] = Field(..., serialization_alias="SE")
-    details: RemoteSetModeHistoryEventDetails = Field(..., serialization_alias="D")
+    model_config = ConfigDict(populate_by_name=True)
+
+    event: Literal["RemoteSetMode"] = Field(..., alias="SE")
+    details: RemoteSetModeHistoryEventDetails = Field(..., alias="D")
 
 
 HistoryEvent = RemoteSetModeHistoryEvent | UnknownHistoryEvent
@@ -216,30 +236,30 @@ class HistoryEventCombinedModel(RootModel):
 
     def __eq__(self, other):
         if isinstance(other, HistoryEventCombinedModel):
-            return self.__root__ == other.__root__
+            return self.root == other.root
         else:
             return False
 
     def __lt__(self, other):
         if isinstance(other, HistoryEventCombinedModel):
-            return self.__root__.timestamp < other.__root__.timestamp
+            return self.root.timestamp < other.root.timestamp
         else:
             return False
 
     def __le__(self, other):
         if isinstance(other, HistoryEventCombinedModel):
-            return self.__root__.timestamp <= other.__root__.timestamp
+            return self.root.timestamp <= other.root.timestamp
         else:
             return False
 
     def __gt__(self, other):
         if isinstance(other, HistoryEventCombinedModel):
-            return self.__root__.timestamp > other.__root__.timestamp
+            return self.root.timestamp > other.root.timestamp
         else:
             return False
 
     def __ge__(self, other):
         if isinstance(other, HistoryEventCombinedModel):
-            return self.__root__.timestamp >= other.__root__.timestamp
+            return self.root.timestamp >= other.root.timestamp
         else:
             return False
