@@ -78,83 +78,74 @@ class Current(BaseModel):
 
 
 class Position(BaseModel):
-    longitude: float = Field(..., alias="Longitude")
-    latitude: float = Field(..., alias="Latitude")
-    date_time: datetime.datetime = Field(..., alias="DateTime")
+    longitude: float = Field(..., serialization_alias="Longitude")
+    latitude: float = Field(..., serialization_alias="Latitude")
+    date_time: datetime.datetime = Field(..., serialization_alias="DateTime")
 
     _normalize_date_time = field_validator("date_time", mode="before")(dtparse)
 
-    class Config:
-        allow_population_by_field_name = True
-
 
 class StatusInfo(BaseModel):
-    robot: RobotId = Field(..., alias="Robot")
-    status: Status = Field(..., alias="Status")
-    mac_address: str = Field(..., alias="MacAddress")
-    date: datetime.datetime = Field(..., alias="Date")
-    delta: str = Field(..., alias="Delta")
-    estimated_battery_level: float = Field(..., alias="EstimatedBatteryLevel")
-    position: Position = Field(..., alias="Position")
-    query_time: datetime.datetime = Field(..., alias="QueryTime")
-    has_values: bool = Field(..., alias="HasValues")
-    is_online: bool = Field(..., alias="IsOnline")
+    robot: RobotId = Field(..., serialization_alias="Robot")
+    status: Status = Field(..., serialization_alias="Status")
+    mac_address: str = Field(..., serialization_alias="MacAddress")
+    date: datetime.datetime = Field(..., serialization_alias="Date")
+    delta: str = Field(..., serialization_alias="Delta")
+    estimated_battery_level: float = Field(..., serialization_alias="EstimatedBatteryLevel")
+    position: Position = Field(..., serialization_alias="Position")
+    query_time: datetime.datetime = Field(..., serialization_alias="QueryTime")
+    has_values: bool = Field(..., serialization_alias="HasValues")
+    is_online: bool = Field(..., serialization_alias="IsOnline")
 
     _normalize_date = field_validator("date", mode="before")(dtparse)
     _normalize_query_time = field_validator("query_time", mode="before")(dtparse)
 
-    class Config:
-        allow_population_by_field_name = True
-
 
 class LastStatuses(BaseModel):
-    query_date: datetime.datetime = Field(..., alias="QueryDate")
-    robots: list[RobotId] = Field(..., alias="Robots")
-    statuses_info: list[StatusInfo] = Field(..., alias="StatusesInfo")
-    robot_offline_delay_in_seconds: int = Field(..., alias="RobotOfflineDelayInSeconds")
+    query_date: datetime.datetime = Field(..., serialization_alias="QueryDate")
+    robots: list[RobotId] = Field(..., serialization_alias="Robots")
+    statuses_info: list[StatusInfo] = Field(..., serialization_alias="StatusesInfo")
+    robot_offline_delay_in_seconds: int = Field(..., serialization_alias="RobotOfflineDelayInSeconds")
 
     _normalize_query_date = field_validator("query_date", mode="before")(dtparse)
 
-    class Config:
-        allow_population_by_field_name = True
-
 
 class NavigationProfileUserParameters(BaseModel, extra="ignore"):
-    robot_name: str = Field(..., alias="RobotName")
+    robot_name: str = Field(..., serialization_alias="RobotName")
 
 
 class NavigationProfileInstance(BaseModel, extra="ignore"):
-    has_gps_rtk: bool = Field(..., alias="HasGpsRTK")
-    has_vsb: bool = Field(..., alias="HasVSB")
+    has_gps_rtk: bool = Field(..., serialization_alias="HasGpsRTK")
+    has_vsb: bool = Field(..., serialization_alias="HasVSB")
     user_parameters: NavigationProfileUserParameters = Field(
-        ..., alias="UserParameters"
+        ..., serialization_alias="UserParameters"
     )
 
 
 class ServoControlProfileInstance(BaseModel, extra="ignore"):
-    current_cutting_height: int = Field(..., alias="CurrentCuttingHeight")
+    current_cutting_height: int = Field(..., serialization_alias="CurrentCuttingHeight")
 
 
 class GetConfigData(BaseModel, extra="ignore"):
-    brain_version: str = Field(..., alias="BrainVersion")
-    image_version: str = Field(..., alias="ImageVersion")
+    brain_version: str = Field(..., serialization_alias="BrainVersion")
+    image_version: str = Field(..., serialization_alias="ImageVersion")
     navigation_profile_instance: NavigationProfileInstance = Field(
-        ..., alias="NavigationProfileInstance"
+        ..., serialization_alias="NavigationProfileInstance"
     )
     servo_control_profile_instance: ServoControlProfileInstance = Field(
-        ..., alias="ServoControlProfileInstance"
+        ..., serialization_alias="ServoControlProfileInstance"
     )
 
 
 class GetConfig(BaseModel, extra="ignore"):
-    is_error: bool = Field(..., alias="IsError")
-    is_in_progress: bool = Field(..., alias="IsInProgress")
-    message: str | None = Field(..., alias="Message")
-    data: GetConfigData | None = Field(..., alias="Data")
-    config_id: int = Field(..., alias="ConfigId")
-    config_version_id: int = Field(..., alias="ConfigVersionId")
-    config_date_time: datetime.datetime | None = Field(..., alias="ConfigDateTime")
-    config_validated: bool = Field(..., alias="ConfigValidated")
+    is_error: bool = Field(..., serialization_alias="IsError")
+    is_in_progress: bool = Field(..., serialization_alias="IsInProgress")
+    message: str | None = Field(..., serialization_alias="Message")
+    data: GetConfigData | None = Field(..., serialization_alias="Data")
+    config_id: int = Field(..., serialization_alias="ConfigId")
+    config_version_id: int = Field(..., serialization_alias="ConfigVersionId")
+    config_date_time: datetime.datetime | None = Field(..., serialization_alias="ConfigDateTime")
+    config_validated: bool = Field(..., serialization_alias="ConfigValidated")
 
     @field_validator("config_date_time", mode="before")
     @classmethod
@@ -173,8 +164,8 @@ class GetConfig(BaseModel, extra="ignore"):
 
 
 class BaseHistoryEvent(BaseModel, extra="ignore"):
-    timestamp: datetime.datetime = Field(..., alias="TS")
-    duration: datetime.timedelta = Field(..., alias="FD")
+    timestamp: datetime.datetime = Field(..., serialization_alias="TS")
+    duration: datetime.timedelta = Field(..., serialization_alias="FD")
 
     _normalize_timestamp = field_validator("timestamp", mode="before")(dtparse)
 
@@ -192,13 +183,13 @@ class BaseHistoryEvent(BaseModel, extra="ignore"):
 
 
 class UnknownHistoryEvent(BaseHistoryEvent):
-    event: str = Field(..., alias="SE")
-    details: str | None = Field(..., alias="D")
-    state: str = Field(..., alias="SS")
+    event: str = Field(..., serialization_alias="SE")
+    details: str | None = Field(..., serialization_alias="D")
+    state: str = Field(..., serialization_alias="SS")
 
 
 class KnownHistoryEvent(BaseHistoryEvent):
-    state: Status = Field(..., alias="SS")
+    state: Status = Field(..., serialization_alias="SS")
 
 
 RemoteSetModeHistoryEventDetails = Literal[
@@ -207,8 +198,8 @@ RemoteSetModeHistoryEventDetails = Literal[
 
 
 class RemoteSetModeHistoryEvent(KnownHistoryEvent):
-    event: Literal["RemoteSetMode"] = Field(..., alias="SE")
-    details: RemoteSetModeHistoryEventDetails = Field(..., alias="D")
+    event: Literal["RemoteSetMode"] = Field(..., serialization_alias="SE")
+    details: RemoteSetModeHistoryEventDetails = Field(..., serialization_alias="D")
 
 
 HistoryEvent = RemoteSetModeHistoryEvent | UnknownHistoryEvent
