@@ -11,17 +11,6 @@ ALL_MODES = list(typing.get_args(echoroboticsapi.Mode))
 ALL_STATUSES = list(typing.get_args(echoroboticsapi.Status))
 
 
-@pytest.fixture
-def robot_id() -> echoroboticsapi.RobotId:
-    yield "test_robot_id"
-
-
-@pytest.fixture
-def smart_mode(robot_id) -> echoroboticsapi.SmartMode:
-    sm = echoroboticsapi.SmartMode(robot_id=robot_id)
-    yield sm
-
-
 def test_unknown(smart_mode: echoroboticsapi.SmartMode):
     assert smart_mode.get_robot_mode() is None
 
@@ -41,6 +30,9 @@ RETURN_TO_MODES: dict[echoroboticsapi.Status, echoroboticsapi.Mode] = {
     "Work": "work",
     "Border": "work",
     "LeaveStation": "work",
+    "Offline": "chargeAndStay",
+    "Off": "chargeAndStay",
+    "OffAfterAlarm": "chargeAndStay",
 }
 
 

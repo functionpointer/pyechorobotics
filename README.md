@@ -8,6 +8,8 @@ pyechorobotics
 
 Allows control and reads status of robot lawn mowers by echorobotics.
 
+Used by [Home Assistant Echorobotics integration](https://github.com/functionpointer/home-assistant-echorobotics-integration).
+
 Example:
 ```python
 import sys
@@ -32,7 +34,7 @@ if __name__ == "__main__":
 
 ```
 
-Unfortunately, the API doesn't tell is which mode the robot is in.
+Unfortunately, the API doesn't tell is which mode ("chargeAndWork", "work" or "chargeAndStay") the robot is in.
 We can make an educated guess though, depending on what we set ourselves, history events and the status.
 This is what SmartMode does:
 
@@ -53,7 +55,7 @@ async def main():
         
         print(await api.history_list())
         print(await api.last_statuses())
-        print(await smartmode.get_robot_mode())
+        print(smartmode.get_robot_mode())
 
 
 if __name__ == "__main__":
@@ -64,3 +66,54 @@ if __name__ == "__main__":
 ```
 
 See also src/main.py
+
+SmartFetch
+==========
+
+While calling `last_statuses()` and `history_list()` regularly (suggestion every 2min and 15min), this is somewhat wasteful of bandwidth.
+Especially ``history_list()`` uses some 60KiB of data volume. If calling this every 15mins is an issue for you, you may be interested in
+SmartFetch.
+
+```python
+import sys
+
+import echoroboticsapi
+import aiohttp
+import asyncio
+import logging
+
+
+async def main():
+    async with aiohttp.ClientSession(cookies=echoroboticsapi.create_cookies(user_id="your-user-id", user_token="user-user-token")) as session:
+        api = echoroboticsapi.Api(session, robot_ids=["your-robot-id"])
+        smartmode = echoroboticsapi.SmartMode("your-robot-id")
+        api.register_smart_mode(smartmode)
+        smartfetch = echoroboticsapi.SmartFetch(api)
+        
+        last_statuses = await smartfetch.smart_fetch()
+        print(last_statuses)
+        print(smartmode.get_robot_mode())
+
+
+if __name__ == "__main__":
+    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+    loop = asyncio.new_event_loop()
+    loop.run_until_complete(main())
+
+```
+
+Dev notes
+=========
+
+To make a new release, use GitHub website and draft a release manually.
+Make sure the version number in pyproject.toml matches the new tag.
+GitHub Actions will publish it to pypi.
+
+Adding a new state
+------------------
+
+If a new state is found, it must be added to ``models.py``.
+Also check ``notify_laststatuses_received()`` in ```smart_mode.py``` if it should be recognized as a specific Mode.
+
+Finally, in home-assistant-echorobotics-integration, increment the version number in the manifest.json.
+Also check the translations in echorobotics/translations, and any custom dashboard code.
