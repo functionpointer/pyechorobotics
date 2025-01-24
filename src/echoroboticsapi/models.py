@@ -203,30 +203,30 @@ class HistoryEventCombinedModel(RootModel):
 
     def __eq__(self, other):
         if isinstance(other, HistoryEventCombinedModel):
-            return self.__root__ == other.__root__
+            return self.root == other.root
         else:
             return False
 
     def __lt__(self, other):
         if isinstance(other, HistoryEventCombinedModel):
-            return self.__root__.timestamp < other.__root__.timestamp
+            return self.root.timestamp < other.root.timestamp
         else:
             return False
 
     def __le__(self, other):
         if isinstance(other, HistoryEventCombinedModel):
-            return self.__root__.timestamp <= other.__root__.timestamp
+            return self.root.timestamp <= other.root.timestamp
         else:
             return False
 
     def __gt__(self, other):
         if isinstance(other, HistoryEventCombinedModel):
-            return self.__root__.timestamp > other.__root__.timestamp
+            return self.root.timestamp > other.root.timestamp
         else:
             return False
 
     def __ge__(self, other):
         if isinstance(other, HistoryEventCombinedModel):
-            return self.__root__.timestamp >= other.__root__.timestamp
+            return self.root.timestamp >= other.root.timestamp
         else:
             return False

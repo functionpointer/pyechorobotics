@@ -257,7 +257,7 @@ class Api:
             if not is_sorted:
                 self.logger.warning("history_list: isn't sorted!")
 
-            resp = [q.__root__ for q in resp]
+            resp = [q.root for q in resp]
 
             if robot_id in self.smart_modes:
                 await self.smart_modes[robot_id].notify_history_list_received(resp)
