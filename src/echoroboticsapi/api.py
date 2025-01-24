@@ -69,7 +69,7 @@ class Api:
 
         self.logger.debug(f"got json {json}")
         try:
-            resp = GetConfig.parse_obj(json)
+            resp = GetConfig.model_validate(json)
             return resp
         except pydantic.ValidationError as e:
             self.logger.error(f"get_config: error was caused by json {json}")
@@ -180,7 +180,7 @@ class Api:
         response = await self.request(method="GET", url=url_obj)
         json = await response.json()
         try:
-            resp = Current.parse_obj(json)
+            resp = Current.model_validate(json)
         except pydantic.ValidationError as e:
             self.logger.error(f"current: error was caused by json {json}")
             self.logger.exception(e)
@@ -204,7 +204,7 @@ class Api:
         json = await response.json()
         self.logger.debug(f"last_statuses: got json {json}")
         try:
-            resp = LastStatuses.parse_obj(json)
+            resp = LastStatuses.model_validate(json)
         except pydantic.ValidationError as e:
             self.logger.error(f"last_statuses: error was caused by json {json}")
             self.logger.exception(e)
@@ -250,7 +250,7 @@ class Api:
             resp = []
             for obj in json:
                 self.logger.debug("history_list: parsing %s", obj)
-                parsed = HistoryEventCombinedModel.parse_obj(obj)
+                parsed = HistoryEventCombinedModel.model_validate(obj)
                 self.logger.debug("history_list: success: %s", parsed)
                 resp.append(parsed)
         except pydantic.ValidationError as e:
@@ -263,7 +263,7 @@ class Api:
             if not is_sorted:
                 self.logger.warning("history_list: isn't sorted!")
 
-            resp = [q.__root__ for q in resp]
+            resp = [q.root for q in resp]
 
             if robot_id in self.smart_modes:
                 await self.smart_modes[robot_id].notify_history_list_received(resp)
