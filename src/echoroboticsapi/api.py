@@ -36,6 +36,11 @@ class Api:
         self.logger = logging.getLogger("echoroboticsapi")
         self.smart_modes: dict[RobotId, "SmartMode"] = {}
 
+    def _set_mode_use_current_sleep_times(self):
+        yield from [3, 2, 2, 2]
+        while True:
+            yield 3
+
     def register_smart_mode(self, smartmode: "SmartMode"):
         self.smart_modes[smartmode.robot_id] = smartmode
 
@@ -77,7 +82,11 @@ class Api:
             raise e
 
     async def set_mode(
-        self, mode: Mode, robot_id: RobotId | None = None, use_current: bool = True
+        self,
+        mode: Mode,
+        robot_id: RobotId | None = None,
+        use_current: bool = True,
+        use_current_timeout=35,
     ) -> int:
         """Set the operating mode of the robot.
 
@@ -86,7 +95,7 @@ class Api:
         When use_current==True (the default), this method performs multiple calls to current(),
         to evaluate if the set_mode operation worked. This is because the HTTP status code 200 just means the command
         was received by echorobotics.com, but not by the actual robot. If the current() calls failed to verify, this method returns -1.
-        The verification process may wait up to 25 seconds for feedback from the actual robot.
+        The verification process may wait up to use_current_timeout (35 by default) seconds for feedback from the actual robot.
         """
         robot_id = self._get_robot_id(robot_id)
         self.logger.debug(
@@ -107,9 +116,9 @@ class Api:
             if use_current:
 
                 def is_confirmed(c: Current) -> Literal["confirm", "unknown", "denied"]:
-                    if c.action_id == oldcurrent.action_id:
+                    if c.action_id is None or c.action_id == oldcurrent.action_id:
                         return "unknown"
-                    if c.status < 5:
+                    if c.status is None or c.status < 5:
                         return "unknown"
                     expected_modes: dict[Current.Message, Mode] = {
                         Current.Message.scheduled_work: "work",
@@ -129,8 +138,8 @@ class Api:
                 verify_start = asyncio.get_running_loop().time()
                 newcurrent: Current | None = None
                 try:
-                    async with asyncio.timeout(25) as timeout:
-                        for sleeptime in [3, 2, 2, 2] + [3] * 10:
+                    async with asyncio.timeout(use_current_timeout) as timeout:
+                        for sleeptime in self._set_mode_use_current_sleep_times():
                             if (
                                 timeout.when() - sleeptime
                                 < asyncio.get_running_loop().time()

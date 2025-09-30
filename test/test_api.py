@@ -27,7 +27,14 @@ async def client_session():
 
 @pytest.fixture
 def api(client_session: aiohttp.ClientSession, robot_id: echoroboticsapi.RobotId):
-    yield echoroboticsapi.Api(client_session, robot_id)
+    ret = echoroboticsapi.Api(client_session, robot_id)
+
+    def fast():
+        while True:
+            yield 0.01
+
+    ret._set_mode_use_current_sleep_times = fast
+    yield ret
 
 
 @pytest.mark.asyncio
@@ -403,3 +410,79 @@ async def test_current(
         expected_url,
         method="GET",
     )
+
+
+@pytest.mark.asyncio
+async def test_set_mode_bad_contact(
+    api: echoroboticsapi.Api, mock_aioresponse, robot_id: echoroboticsapi.RobotId
+):
+    mock_json_old = (
+        rf'{{"SerialNumber":"{robot_id}","ActionId":null,"Status":0,"Message":null}}'
+    )
+    mock_json_pending = rf'{{"SerialNumber":"{robot_id}"}}'
+    mock_json_error = rf'{{"SerialNumber":"{robot_id}","ActionId":123456,"Status":6,"Message":"robotActionErrorMessages.contactError"}}'
+    expected_url = (
+        f"https://myrobot.echorobotics.com/api/RobotAction/{robot_id}/current"
+    )
+    setmode_url = "https://myrobot.echorobotics.com/api/RobotAction/SetMode"
+    mock_aioresponse.get(expected_url, body=mock_json_old, repeat=1)
+    mock_aioresponse.post(setmode_url)
+    mock_aioresponse.get(expected_url, body=mock_json_pending, repeat=3)
+    mock_aioresponse.get(expected_url, body=mock_json_error, repeat=1)
+
+    status_code = await api.set_mode("work", robot_id, use_current=True)
+
+    assert status_code == -1
+    mock_aioresponse.assert_called_with(expected_url, method="GET")
+
+
+@pytest.mark.asyncio
+async def test_set_mode_bad_contact_timeout(
+    api: echoroboticsapi.Api, mock_aioresponse, robot_id: echoroboticsapi.RobotId
+):
+    mock_json_old = (
+        rf'{{"SerialNumber":"{robot_id}","ActionId":null,"Status":0,"Message":null}}'
+    )
+    mock_json_pending = rf'{{"SerialNumber":"{robot_id}"}}'
+    expected_url = (
+        f"https://myrobot.echorobotics.com/api/RobotAction/{robot_id}/current"
+    )
+    setmode_url = "https://myrobot.echorobotics.com/api/RobotAction/SetMode"
+    mock_aioresponse.get(expected_url, body=mock_json_old, repeat=1)
+    mock_aioresponse.post(setmode_url)
+    mock_aioresponse.get(expected_url, body=mock_json_pending, repeat=True)
+
+    status_code = await api.set_mode(
+        "work", robot_id, use_current=True, use_current_timeout=0.3
+    )
+
+    assert status_code == -1
+    mock_aioresponse.assert_called_with(expected_url, method="GET")
+
+
+@pytest.mark.asyncio
+async def test_set_mode_working(
+    api: echoroboticsapi.Api, mock_aioresponse, robot_id: echoroboticsapi.RobotId
+):
+    mock_json_old = (
+        rf'{{"SerialNumber":"{robot_id}","ActionId":null,"Status":0,"Message":null}}'
+    )
+    mock_json_pending1 = rf'{{"SerialNumber":"{robot_id}"}}'
+    mock_json_pending2 = (
+        rf'{{"SerialNumber":"{robot_id}", "ActionId":123456, "Status": 2}}'
+    )
+    mock_json_success = rf'{{"SerialNumber":"{robot_id}","ActionId":123456,"Status":6,"Message":"robot.handleActionMessage.scheduledWork"}}'
+    expected_url = (
+        f"https://myrobot.echorobotics.com/api/RobotAction/{robot_id}/current"
+    )
+    setmode_url = "https://myrobot.echorobotics.com/api/RobotAction/SetMode"
+    mock_aioresponse.get(expected_url, body=mock_json_old, repeat=1)
+    mock_aioresponse.post(setmode_url)
+    mock_aioresponse.get(expected_url, body=mock_json_pending1, repeat=1)
+    mock_aioresponse.get(expected_url, body=mock_json_pending2, repeat=1)
+    mock_aioresponse.get(expected_url, body=mock_json_success, repeat=1)
+
+    status_code = await api.set_mode("work", robot_id, use_current=True)
+
+    assert status_code == 200
+    mock_aioresponse.assert_called_with(expected_url, method="GET")

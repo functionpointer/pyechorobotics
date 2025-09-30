@@ -45,7 +45,7 @@ async def main():
         print(f"robot_mode guess: {smartmode.get_robot_mode()}")
 
         print(f"current: {await api.current()}")
-        # print(f"setmode chargeAndWork: {await api.set_mode('chargeAndWork')}")
+        # print(f"setmode chargeAndWork: {await api.set_mode('work', use_current_timeout=60)}")
         print(f"robot_mode guess: {smartmode.get_robot_mode()}")
 
 

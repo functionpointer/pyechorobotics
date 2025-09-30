@@ -73,11 +73,12 @@ class Current(BaseModel):
             "robot.handleActionMessage.scheduledWorkDeniedByRobot"
         )
         already_in_work = "robot.handleActionMessage.alreadyInWork"
+        contact_error = "robotActionErrorMessages.contactError"
 
     serial_number: RobotId = Field(..., alias="SerialNumber")
-    action_id: int | None = Field(..., alias="ActionId")
-    status: pydantic.conint(ge=0, le=6) = Field(..., alias="Status")
-    message: Message | str | None = Field(..., alias="Message")
+    action_id: int | None = Field(None, alias="ActionId")
+    status: pydantic.conint(ge=0, le=6) | None = Field(None, alias="Status")
+    message: Message | str | None = Field(None, alias="Message")
 
 
 class Position(BaseModel):
