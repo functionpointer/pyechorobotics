@@ -160,11 +160,11 @@ class GetConfig(BaseModel, extra="ignore"):
 
     is_error: bool = Field(..., alias="IsError")
     is_in_progress: bool = Field(..., alias="IsInProgress")
-    message: str | None = Field(..., alias="Message")
-    data: GetConfigData | None = Field(..., alias="Data")
+    message: str | None = Field(default=None, alias="Message")
+    data: GetConfigData | None = Field(default=None, alias="Data")
     config_id: int = Field(..., alias="ConfigId")
     config_version_id: int = Field(..., alias="ConfigVersionId")
-    config_date_time: datetime.datetime | None = Field(..., alias="ConfigDateTime")
+    config_date_time: datetime.datetime | None = Field(default=None, alias="ConfigDateTime")
     config_validated: bool = Field(..., alias="ConfigValidated")
 
     @field_validator("config_date_time", mode="before")
@@ -207,7 +207,7 @@ class UnknownHistoryEvent(BaseHistoryEvent):
     model_config = ConfigDict(populate_by_name=True)
 
     event: str = Field(..., alias="SE")
-    details: str | None = Field(..., alias="D")
+    details: str | None = Field(default=None, alias="D")
     state: str = Field(..., alias="SS")
 
 
