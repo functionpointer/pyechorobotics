@@ -164,7 +164,9 @@ class GetConfig(BaseModel, extra="ignore"):
     data: GetConfigData | None = Field(default=None, alias="Data")
     config_id: int = Field(..., alias="ConfigId")
     config_version_id: int = Field(..., alias="ConfigVersionId")
-    config_date_time: datetime.datetime | None = Field(default=None, alias="ConfigDateTime")
+    config_date_time: datetime.datetime | None = Field(
+        default=None, alias="ConfigDateTime"
+    )
     config_validated: bool = Field(..., alias="ConfigValidated")
 
     @field_validator("config_date_time", mode="before")
