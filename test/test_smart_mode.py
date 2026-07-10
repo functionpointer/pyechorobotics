@@ -37,7 +37,9 @@ RETURN_TO_MODES: dict[echoroboticsapi.Status, echoroboticsapi.Mode] = {
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("laststatus, mode", list(itertools.product(ALL_STATUSES, ALL_MODES)))
+@pytest.mark.parametrize(
+    "laststatus, mode", list(itertools.product(ALL_STATUSES, ALL_MODES))
+)
 async def test_laststatus_then_mode(smart_mode, laststatus, mode):
     with patch("time.time", MagicMock(return_value=time.time())) as mock:
         await smart_mode.notify_laststatuses_received(laststatus)

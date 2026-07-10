@@ -50,7 +50,9 @@ def mock_laststatuses(
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("status1, status2", list(itertools.combinations(ALL_STATUSES, 2)))
+@pytest.mark.parametrize(
+    "status1, status2", list(itertools.combinations(ALL_STATUSES, 2))
+)
 async def test_schedule_smartfetch(
     robot_id: RobotId,
     api: echoroboticsapi.Api,
