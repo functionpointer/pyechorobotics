@@ -163,7 +163,7 @@ class GetConfig(BaseModel, extra="ignore"):
     message: str | None = Field(default=None, alias="Message")
     data: GetConfigData | None = Field(default=None, alias="Data")
     config_id: int = Field(..., alias="ConfigId")
-    config_version_id: int = Field(..., alias="ConfigVersionId")
+    config_version_id: int | None = Field(default=None, alias="ConfigVersionId")
     config_date_time: datetime.datetime | None = Field(
         default=None, alias="ConfigDateTime"
     )

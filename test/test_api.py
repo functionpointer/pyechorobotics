@@ -52,6 +52,21 @@ async def test_get_config(
 
 
 @pytest.mark.asyncio
+async def test_get_config_in_progress_without_config_version_id(
+    robot_id: RobotId, api: echoroboticsapi.Api, mock_aioresponse
+):
+    mock_json = '{"IsError": false, "IsInProgress": true, "Message": "configurator.apiresponse.get.willNowContactRobot", "ConfigId": 0, "ConfigDateTime": "0001-01-01T00:00:00", "ConfigValidated": false}'
+    expected_url = f"https://myrobot.echorobotics.com/api/RobotConfig/GetConfig/{robot_id}?reload=True"
+    mock_aioresponse.get(expected_url, body=mock_json)
+
+    resp = await api.get_config(reload=True, robot_id=robot_id)
+
+    assert resp.is_in_progress
+    assert resp.config_version_id is None
+    mock_aioresponse.assert_called_once_with(expected_url, method="GET")
+
+
+@pytest.mark.asyncio
 async def test_laststatuses(
     api: echoroboticsapi.Api, mock_aioresponse, robot_id: echoroboticsapi.RobotId
 ):
