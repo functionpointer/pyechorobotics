@@ -1,17 +1,43 @@
 import datetime
 
 import asyncio
+from typing import Any, TYPE_CHECKING
+from warnings import deprecated
+
 import pydantic
 from aiohttp import ClientSession, ClientResponse
 from yarl import URL
+
 from .models import *
 import logging
 import time
+from abc import ABC, abstractmethod
 
+if TYPE_CHECKING:
+    from . import SmartMode
 
-def create_cookies(user_id: str, user_token: str) -> dict[str, str]:
-    return {"UserId": user_id, "UserToken": user_token}
+def create_cookies(user_id: str, user_token: str | None) -> dict[str, str]:
+    ret = {"UserId": user_id,
+           #"AccessToken": "ey...",
+           "br_at": "ey..."
+    }
+    #if user_token is not None and "Bearer" not in user_token:
+        #ret["UserToken"] = user_token
+    return ret
 
+def create_headers(user_id: str, user_token: str) -> dict[str, Any]:
+    """
+    Create Headers needed for authentication with the API.
+    Compatible both with USER_TOKEN and Authentication
+    :param user_id:
+    :param user_token:
+    :return:
+    """
+    return {}
+    if "Bearer" in user_token:
+        return {"Authorization":user_token}
+    else:
+        return {}
 
 class LastKnownMode:
     mode: Mode
@@ -21,8 +47,7 @@ class LastKnownMode:
         self.mode = mode
         self.pending_since = pending_since or time.time()
 
-
-class Api:
+class AbstractApi(ABC):
     """Class to make authenticated requests."""
 
     def __init__(self, websession: ClientSession, robot_ids: RobotId | list[RobotId]):
@@ -35,6 +60,10 @@ class Api:
             raise ValueError("must provide a robot id")
         self.logger = logging.getLogger("echoroboticsapi")
         self.smart_modes: dict[RobotId, "SmartMode"] = {}
+
+    @abstractmethod
+    async def get_access_token(self) -> str:
+        """Returns a valid access token"""
 
     def _set_mode_use_current_sleep_times(self):
         yield from [3, 2, 2, 2]

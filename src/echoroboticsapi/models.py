@@ -10,13 +10,13 @@ from pydantic import (
     Extra,
     validator,
     RootModel,
-    ConfigDict,
+    ConfigDict, StringConstraints,
 )
-from typing import Literal, Self
+from typing import Literal, Self, Annotated
 from dateutil.parser import isoparse as dateutil_isoparse
 from enum import Enum
 
-RobotId = constr()
+RobotId = Annotated[str,StringConstraints(strip_whitespace=True, to_upper=True),]
 Mode = Literal["chargeAndWork", "chargeAndStay", "work"]
 Status = Literal[
     "Offline",

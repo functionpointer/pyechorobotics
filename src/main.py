@@ -9,9 +9,17 @@ import logging
 
 
 async def on_request_start(session, trace_config_ctx, params):
+
+    # Ask the session's cookie jar what it would attach for this URL
+    jar_cookies = session.cookie_jar.filter_cookies(params.url)
+    if jar_cookies:
+        cookie_str = ";\n".join(f"{k}={v.value}" for k, v in jar_cookies.items())
+    else:
+        cookie_str = ""
+
     print(
-        "Starting %s request for %s. I will send: %s"
-        % (params.method, params.url, params.headers)
+        "Starting %s request for %s. I will send: %s; cookie_jar: %s"
+        % (params.method, params.url, params.headers, cookie_str)
     )
 
 
@@ -24,12 +32,15 @@ async def main():
     trace_config.on_request_start.append(on_request_start)
 
     async with aiohttp.ClientSession(
-        # trace_configs=[trace_config],
-        cookies=echoroboticsapi.create_cookies(
+        trace_configs=[trace_config],
+        cookies=echoroboticsapi.create_cookies(user_id=user_id, user_token=user_token),
+        headers=echoroboticsapi.create_headers(
             user_id=user_id,
             user_token=user_token,
-        )
+        ),
     ) as session:
+        async with session.get("http://httpbin.org/cookies") as resp:
+            print(await resp.json())
         api = echoroboticsapi.Api(session, robot_ids=robot_id)
         smartmode = echoroboticsapi.SmartMode(robot_id)
         api.register_smart_mode(smartmode)
