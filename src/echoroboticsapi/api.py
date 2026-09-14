@@ -1,16 +1,20 @@
 import datetime
 
 import asyncio
+from typing import Any, TYPE_CHECKING, TypedDict
+from warnings import deprecated
+
 import pydantic
 from aiohttp import ClientSession, ClientResponse
 from yarl import URL
+
 from .models import *
 import logging
 import time
+from abc import ABC, abstractmethod
 
-
-def create_cookies(user_id: str, user_token: str) -> dict[str, str]:
-    return {"UserId": user_id, "UserToken": user_token}
+if TYPE_CHECKING:
+    from . import SmartMode
 
 
 class LastKnownMode:
@@ -22,12 +26,27 @@ class LastKnownMode:
         self.pending_since = pending_since or time.time()
 
 
+class AuthInfo(TypedDict):
+    access_token: str
+    refresh_token: str
+    obtained_timestamp: float
+
+
 class Api:
     """Class to make authenticated requests."""
 
-    def __init__(self, websession: ClientSession, robot_ids: RobotId | list[RobotId]):
+    def __init__(
+        self,
+        websession: ClientSession,
+        robot_ids: RobotId | list[RobotId],
+        email: str,
+        password: str,
+    ):
         """Initialize the auth."""
         self.websession = websession
+        self.email = email
+        self.password = password
+        self.auth_info: AuthInfo | None = None
         if not isinstance(robot_ids, list):
             robot_ids = [robot_ids]
         self.robot_ids = robot_ids
@@ -35,6 +54,73 @@ class Api:
             raise ValueError("must provide a robot id")
         self.logger = logging.getLogger("echoroboticsapi")
         self.smart_modes: dict[RobotId, "SmartMode"] = {}
+
+    async def loginv2(self, email: str, password: str) -> AuthInfo:
+        data = {"Email": email, "Password": password}
+        url = URL(f"https://myrobot.echorobotics.com/api/authentication/loginv2")
+        result = await self.request(
+            method="POST",
+            add_auth=False,
+            url=url,
+            json=data,
+        )
+        result.raise_for_status()
+        json_result = await result.json()
+        ret: AuthInfo = {
+            "access_token": json_result["Token"],
+            "refresh_token": json_result["RefreshToken"],
+            "obtained_timestamp": time.time(),
+        }
+        return ret
+
+    @property
+    def token_refresh_duration(self):
+        return 5 * 60  # 5 minutes
+        # return 30
+
+    async def get_access_token(self) -> str:
+        """Returns a valid access token
+        Performs API call to the refresh endpoint if needed.
+        """
+        if self.auth_info is None:
+            self.auth_info = await self.loginv2(self.email, self.password)
+        if self.auth_info is None:
+            return ""
+        if (
+            time.time()
+            > self.auth_info["obtained_timestamp"] + self.token_refresh_duration
+        ):
+            # have to refresh
+            url = URL(f"https://myrobot.echorobotics.com/api/authentication/refresh")
+            # url = URL(f"http://httpbin.org/cookies")
+            result = await self.request(
+                method="POST",
+                add_auth=False,
+                url=url,
+                headers={"Authorization": f"Bearer {self.auth_info['access_token']}"},
+                cookies={
+                    "br_rt": self.auth_info["refresh_token"],
+                    # "br_at": self.auth_info["access_token"],
+                },
+                json={},
+            )
+            result.raise_for_status()
+            json = await result.json()
+            self.logger.debug(f"auth_refresh: json {json}")
+            new_auth_info: AuthInfo = {
+                "access_token": json["Token"],
+                "refresh_token": json["RefreshToken"],
+                "obtained_timestamp": time.time(),
+            }
+            self.auth_info = new_auth_info
+            self.logger.info(
+                "auth refresh successful. access_token %s, refresh_token %s",
+                new_auth_info["access_token"],
+                new_auth_info["refresh_token"],
+            )
+        else:
+            self.logger.debug("auth refresh not needed")
+        return self.auth_info["access_token"]
 
     def _set_mode_use_current_sleep_times(self):
         yield from [3, 2, 2, 2]
@@ -278,10 +364,17 @@ class Api:
                 await self.smart_modes[robot_id].notify_history_list_received(resp)
             return resp
 
-    async def request(self, method: str, url: URL, **kwargs) -> ClientResponse:
+    async def request(
+        self, method: str, url: URL, add_auth: bool = True, **kwargs
+    ) -> ClientResponse:
         """Make a request."""
+        if headers := kwargs.pop("headers", {}):
+            headers = dict(headers)
+        if add_auth:
+            headers["authorization"] = f"Bearer {await self.get_access_token()}"
         return await self.websession.request(
             method,
             url,
+            headers=headers,
             **kwargs,
         )

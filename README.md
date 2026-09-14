@@ -21,8 +21,8 @@ import logging
 
 
 async def main():
-    async with aiohttp.ClientSession(cookies=echoroboticsapi.create_cookies(user_id="your-user-id", user_token="user-user-token")) as session:
-        api = echoroboticsapi.Api(session, robot_ids=["your-robot-id"])
+    async with aiohttp.ClientSession() as session:
+        api = echoroboticsapi.Api(session, robot_ids=["your-robot-id"], email="your-email", password="your-password")
         print(await api.last_statuses())
         print(await api.set_mode("chargeAndWork"))
 
@@ -48,8 +48,8 @@ import logging
 
 
 async def main():
-    async with aiohttp.ClientSession(cookies=echoroboticsapi.create_cookies(user_id="your-user-id", user_token="user-user-token")) as session:
-        api = echoroboticsapi.Api(session, robot_ids=["your-robot-id"])
+    async with aiohttp.ClientSession() as session:
+        api = echoroboticsapi.Api(session, robot_ids=["your-robot-id"], email="your-email", password="your-password")
         smartmode = echoroboticsapi.SmartMode("your-robot-id")
         api.register_smart_mode(smartmode)
         
@@ -84,8 +84,8 @@ import logging
 
 
 async def main():
-    async with aiohttp.ClientSession(cookies=echoroboticsapi.create_cookies(user_id="your-user-id", user_token="user-user-token")) as session:
-        api = echoroboticsapi.Api(session, robot_ids=["your-robot-id"])
+    async with aiohttp.ClientSession() as session:
+        api = echoroboticsapi.Api(session, robot_ids=["your-robot-id"], email="your-email", password="your-password")
         smartmode = echoroboticsapi.SmartMode("your-robot-id")
         api.register_smart_mode(smartmode)
         smartfetch = echoroboticsapi.SmartFetch(api)
