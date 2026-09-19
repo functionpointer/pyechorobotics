@@ -71,12 +71,12 @@ class Api:
             "refresh_token": json_result["RefreshToken"],
             "obtained_timestamp": time.time(),
         }
+        self.logger.info("loginv2 %s. Token len=%s; RefreshToken len=%s", result.status, len(ret["access_token"]), len(ret["refresh_token"]))
         return ret
 
     @property
     def token_refresh_duration(self):
         return 5 * 60  # 5 minutes
-        # return 30
 
     async def get_access_token(self) -> str:
         """Returns a valid access token
@@ -86,10 +86,7 @@ class Api:
             self.auth_info = await self.loginv2(self.email, self.password)
         if self.auth_info is None:
             return ""
-        if (
-            time.time()
-            > self.auth_info["obtained_timestamp"] + self.token_refresh_duration
-        ):
+        if (remaining := (self.auth_info["obtained_timestamp"] + self.token_refresh_duration) - time.time()) <= 0:
             # have to refresh
             url = URL(f"https://myrobot.echorobotics.com/api/authentication/refresh")
             # url = URL(f"http://httpbin.org/cookies")
@@ -106,7 +103,6 @@ class Api:
             )
             result.raise_for_status()
             json = await result.json()
-            self.logger.debug(f"auth_refresh: json {json}")
             new_auth_info: AuthInfo = {
                 "access_token": json["Token"],
                 "refresh_token": json["RefreshToken"],
@@ -114,12 +110,13 @@ class Api:
             }
             self.auth_info = new_auth_info
             self.logger.info(
-                "auth refresh successful. access_token %s, refresh_token %s",
-                new_auth_info["access_token"],
-                new_auth_info["refresh_token"],
+                "auth refresh %s. access_token len=%s, refresh_token len=%s",
+                result.status,
+                len(new_auth_info["access_token"]),
+                len(new_auth_info["refresh_token"]),
             )
         else:
-            self.logger.debug("auth refresh not needed")
+            self.logger.debug("auth refresh not needed, %.2f s remaining", remaining)
         return self.auth_info["access_token"]
 
     def _set_mode_use_current_sleep_times(self):
