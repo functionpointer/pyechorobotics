@@ -55,8 +55,8 @@ class Api:
         self.logger = logging.getLogger("echoroboticsapi")
         self.smart_modes: dict[RobotId, "SmartMode"] = {}
 
-    async def loginv2(self, email: str, password: str) -> AuthInfo:
-        data = {"Email": email, "Password": password}
+    async def loginv2(self) -> AuthInfo:
+        data = {"Email": self.email, "Password": self.password}
         url = URL(f"https://myrobot.echorobotics.com/api/authentication/loginv2")
         result = await self.request(
             method="POST",
@@ -88,7 +88,7 @@ class Api:
         Performs API call to the refresh endpoint if needed.
         """
         if self.auth_info is None:
-            self.auth_info = await self.loginv2(self.email, self.password)
+            self.auth_info = await self.loginv2()
         if self.auth_info is None:
             return ""
         if (
