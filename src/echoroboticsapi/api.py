@@ -71,7 +71,12 @@ class Api:
             "refresh_token": json_result["RefreshToken"],
             "obtained_timestamp": time.time(),
         }
-        self.logger.info("loginv2 %s. Token len=%s; RefreshToken len=%s", result.status, len(ret["access_token"]), len(ret["refresh_token"]))
+        self.logger.info(
+            "loginv2 %s. Token len=%s; RefreshToken len=%s",
+            result.status,
+            len(ret["access_token"]),
+            len(ret["refresh_token"]),
+        )
         return ret
 
     @property
@@ -86,7 +91,12 @@ class Api:
             self.auth_info = await self.loginv2(self.email, self.password)
         if self.auth_info is None:
             return ""
-        if (remaining := (self.auth_info["obtained_timestamp"] + self.token_refresh_duration) - time.time()) <= 0:
+        if (
+            remaining := (
+                self.auth_info["obtained_timestamp"] + self.token_refresh_duration
+            )
+            - time.time()
+        ) <= 0:
             # have to refresh
             url = URL(f"https://myrobot.echorobotics.com/api/authentication/refresh")
             # url = URL(f"http://httpbin.org/cookies")
