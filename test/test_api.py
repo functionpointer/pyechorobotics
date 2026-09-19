@@ -26,9 +26,17 @@ async def client_session():
     async with aiohttp.ClientSession() as session:
         yield session
 
+
 @pytest.fixture
-def api_not_logged_in(client_session: aiohttp.ClientSession, robot_id: echoroboticsapi.RobotId, user_email: str, user_password: str):
-    ret = echoroboticsapi.Api(client_session, robot_id, email=user_email, password=user_password)
+def api_not_logged_in(
+    client_session: aiohttp.ClientSession,
+    robot_id: echoroboticsapi.RobotId,
+    user_email: str,
+    user_password: str,
+):
+    ret = echoroboticsapi.Api(
+        client_session, robot_id, email=user_email, password=user_password
+    )
 
     def fast():
         while True:
@@ -37,22 +45,29 @@ def api_not_logged_in(client_session: aiohttp.ClientSession, robot_id: echorobot
     ret._set_mode_use_current_sleep_times = fast
     return ret
 
+
 @pytest.fixture
 def api(api_not_logged_in: echoroboticsapi.Api):
     api_not_logged_in.auth_info = {
         "access_token": "abc",
         "refresh_token": "abc",
-        "obtained_timestamp": time.time()
+        "obtained_timestamp": time.time(),
     }
     yield api_not_logged_in
+
 
 @pytest.fixture
 def expected_headers():
     return {"authorization": "Bearer abc"}
 
+
 @pytest.mark.asyncio
 async def test_loginv2(
-        robot_id: echoroboticsapi.RobotId, api_not_logged_in: echoroboticsapi.Api, mock_aioresponse, user_email: str, user_password: str
+    robot_id: echoroboticsapi.RobotId,
+    api_not_logged_in: echoroboticsapi.Api,
+    mock_aioresponse,
+    user_email: str,
+    user_password: str,
 ):
     mock_payload = {"Token": "abc", "RefreshToken": "abc"}
     expected_url = f"https://myrobot.echorobotics.com/api/authentication/loginv2"
@@ -60,7 +75,13 @@ async def test_loginv2(
 
     api_not_logged_in.auth_info = await api_not_logged_in.loginv2()
     assert api_not_logged_in.auth_info["access_token"] == "abc"
-    mock_aioresponse.assert_called_once_with(expected_url, method="POST", headers={}, json={"Email": user_email, "Password": user_password})
+    mock_aioresponse.assert_called_once_with(
+        expected_url,
+        method="POST",
+        headers={},
+        json={"Email": user_email, "Password": user_password},
+    )
+
 
 @pytest.mark.asyncio
 async def test_get_config(
@@ -73,7 +94,9 @@ async def test_get_config(
     resp = await api.get_config(reload=False, robot_id=robot_id)
 
     assert resp
-    mock_aioresponse.assert_called_once_with(expected_url, method="GET", headers=expected_headers)
+    mock_aioresponse.assert_called_once_with(
+        expected_url, method="GET", headers=expected_headers
+    )
 
 
 @pytest.mark.asyncio
@@ -88,12 +111,17 @@ async def test_get_config_in_progress_without_config_version_id(
 
     assert resp.is_in_progress
     assert resp.config_version_id is None
-    mock_aioresponse.assert_called_once_with(expected_url, method="GET", headers=expected_headers)
+    mock_aioresponse.assert_called_once_with(
+        expected_url, method="GET", headers=expected_headers
+    )
 
 
 @pytest.mark.asyncio
 async def test_laststatuses(
-    api: echoroboticsapi.Api, mock_aioresponse, robot_id: echoroboticsapi.RobotId, expected_headers
+    api: echoroboticsapi.Api,
+    mock_aioresponse,
+    robot_id: echoroboticsapi.RobotId,
+    expected_headers,
 ):
     mock_json = r'{"QueryDate":"2025-01-24T18:50:19.3556944Z","Robots":["robot_id"],"StatusesInfo":[{"Robot":"robot_id","Status":"Off","MacAddress":"ac1f0fb92010","Date":"2024-12-20T15:17:14.861Z","Delta":"5 Wochen","EstimatedBatteryLevel":99.99,"Position":{"Longitude":6.1,"Latitude":5.5,"DateTime":"2024-11-04T13:17:48.461Z"},"QueryTime":"2025-01-24T18:50:19.3556944Z","HasValues":true,"IsOnline":false}],"RobotOfflineDelayInSeconds":1500}'
     mock_json = mock_json.replace("robot_id", robot_id)
@@ -115,7 +143,10 @@ async def test_laststatuses(
 
 @pytest.mark.asyncio
 async def test_history_list(
-    api: echoroboticsapi.Api, mock_aioresponse, robot_id: echoroboticsapi.RobotId, expected_headers
+    api: echoroboticsapi.Api,
+    mock_aioresponse,
+    robot_id: echoroboticsapi.RobotId,
+    expected_headers,
 ):
     mock_json = [
         {
@@ -429,14 +460,17 @@ async def test_history_list(
     mock_aioresponse.assert_called_once_with(
         expected_url,
         method="GET",
-        headers = expected_headers,
+        headers=expected_headers,
     )
     assert len(history_list) > 3
 
 
 @pytest.mark.asyncio
 async def test_current(
-    api: echoroboticsapi.Api, mock_aioresponse, robot_id: echoroboticsapi.RobotId, expected_headers
+    api: echoroboticsapi.Api,
+    mock_aioresponse,
+    robot_id: echoroboticsapi.RobotId,
+    expected_headers,
 ):
     mock_json = r'{"SerialNumber":"robot_id","ActionId":null,"Status":0,"Message":null}'
     mock_json = mock_json.replace("robot_id", robot_id)
@@ -457,7 +491,10 @@ async def test_current(
 
 @pytest.mark.asyncio
 async def test_set_mode_bad_contact(
-    api: echoroboticsapi.Api, mock_aioresponse, robot_id: echoroboticsapi.RobotId, expected_headers
+    api: echoroboticsapi.Api,
+    mock_aioresponse,
+    robot_id: echoroboticsapi.RobotId,
+    expected_headers,
 ):
     mock_json_old = (
         rf'{{"SerialNumber":"{robot_id}","ActionId":null,"Status":0,"Message":null}}'
@@ -476,12 +513,17 @@ async def test_set_mode_bad_contact(
     status_code = await api.set_mode("work", robot_id, use_current=True)
 
     assert status_code == -1
-    mock_aioresponse.assert_called_with(expected_url, method="GET", headers=expected_headers)
+    mock_aioresponse.assert_called_with(
+        expected_url, method="GET", headers=expected_headers
+    )
 
 
 @pytest.mark.asyncio
 async def test_set_mode_bad_contact_timeout(
-    api: echoroboticsapi.Api, mock_aioresponse, robot_id: echoroboticsapi.RobotId, expected_headers
+    api: echoroboticsapi.Api,
+    mock_aioresponse,
+    robot_id: echoroboticsapi.RobotId,
+    expected_headers,
 ):
     mock_json_old = (
         rf'{{"SerialNumber":"{robot_id}","ActionId":null,"Status":0,"Message":null}}'
@@ -500,12 +542,17 @@ async def test_set_mode_bad_contact_timeout(
     )
 
     assert status_code == -1
-    mock_aioresponse.assert_called_with(expected_url, method="GET", headers=expected_headers)
+    mock_aioresponse.assert_called_with(
+        expected_url, method="GET", headers=expected_headers
+    )
 
 
 @pytest.mark.asyncio
 async def test_set_mode_working(
-    api: echoroboticsapi.Api, mock_aioresponse, robot_id: echoroboticsapi.RobotId, expected_headers
+    api: echoroboticsapi.Api,
+    mock_aioresponse,
+    robot_id: echoroboticsapi.RobotId,
+    expected_headers,
 ):
     mock_json_old = (
         rf'{{"SerialNumber":"{robot_id}","ActionId":null,"Status":0,"Message":null}}'
@@ -528,4 +575,6 @@ async def test_set_mode_working(
     status_code = await api.set_mode("work", robot_id, use_current=True)
 
     assert status_code == 200
-    mock_aioresponse.assert_called_with(expected_url, method="GET", headers=expected_headers)
+    mock_aioresponse.assert_called_with(
+        expected_url, method="GET", headers=expected_headers
+    )

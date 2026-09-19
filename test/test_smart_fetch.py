@@ -14,7 +14,9 @@ ALL_STATUSES = list(typing.get_args(echoroboticsapi.Status))
 
 @pytest.fixture
 def api(robot_id: RobotId, user_email: str, user_password: str):
-    api = echoroboticsapi.Api(websession=None, robot_ids=[robot_id], email=user_email, password=user_password)
+    api = echoroboticsapi.Api(
+        websession=None, robot_ids=[robot_id], email=user_email, password=user_password
+    )
     yield api
 
 
