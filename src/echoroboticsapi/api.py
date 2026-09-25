@@ -280,6 +280,7 @@ class Api:
         url_obj = URL(url)
 
         response = await self.request(method="GET", url=url_obj)
+        response.raise_for_status()
         json = await response.json()
         try:
             resp = Current.model_validate(json)
