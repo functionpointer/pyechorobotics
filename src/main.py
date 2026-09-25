@@ -30,8 +30,10 @@ async def main():
     robot_id = os.environ.get("ROBOT_ID", "your_robot_id_here")
 
     if "your" in email or "your" in password or "your" in robot_id:
-      print(f"Error: invalid email, password or robot_id: {email=} {password=} {robot_id=}")
-      sys.exit(1)
+        print(
+            f"Error: invalid email, password or robot_id: {email=} {password=} {robot_id=}"
+        )
+        sys.exit(1)
 
     trace_config = aiohttp.TraceConfig()
     trace_config.on_request_start.append(on_request_start)

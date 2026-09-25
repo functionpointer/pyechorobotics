@@ -83,7 +83,7 @@ class Api:
     def token_refresh_duration(self):
         return 5 * 60  # 5 minutes
 
-    async def get_access_token(self, force_refresh: bool=False) -> str:
+    async def get_access_token(self, force_refresh: bool = False) -> str:
         """Returns a valid access token
         Performs API call to the refresh endpoint if needed.
         """
