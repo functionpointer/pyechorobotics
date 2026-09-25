@@ -83,7 +83,7 @@ class Api:
     def token_refresh_duration(self):
         return 5 * 60  # 5 minutes
 
-    async def get_access_token(self) -> str:
+    async def get_access_token(self, force_refresh: bool=False) -> str:
         """Returns a valid access token
         Performs API call to the refresh endpoint if needed.
         """
@@ -96,7 +96,7 @@ class Api:
                 self.auth_info["obtained_timestamp"] + self.token_refresh_duration
             )
             - time.time()
-        ) <= 0:
+        ) <= 0 or force_refresh:
             # have to refresh
             url = URL(f"https://myrobot.echorobotics.com/api/authentication/refresh")
             # url = URL(f"http://httpbin.org/cookies")
