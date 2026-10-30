@@ -45,7 +45,8 @@ def dtparse(value) -> datetime.datetime:
     ret = dateutil_isoparse(value)
     is_aware = ret.tzinfo is not None and ret.tzinfo.utcoffset(ret) is not None
     if not is_aware:
-        raise ValueError(f"failed to find timezone in: {value}")
+        # since 2026 10 28 the API has started reporting non-aware timestamps in what appears to be zulu time
+        ret = ret.replace(tzinfo=datetime.timezone.utc)
     return ret
 
 
