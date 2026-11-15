@@ -87,7 +87,7 @@ class Position(BaseModel):
 
     longitude: float = Field(..., alias="Longitude")
     latitude: float = Field(..., alias="Latitude")
-    date_time: datetime.datetime = Field(..., alias="DateTime")
+    date_time: datetime.datetime | None = Field(None, alias="DateTime")
 
     _normalize_date_time = field_validator("date_time", mode="before")(dtparse)
 
