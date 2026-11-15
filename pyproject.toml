@@ -8,12 +8,11 @@ dependencies = [
     "python-dateutil"
 ]
 readme = "README.md"
-license = {text = "GNU General Public License v3 or later (GPLv3+)"}
+license = "GPL-3.0-or-later"
 description = "Access API for echorobotics robot lawn mowers"
 requires-python = ">=3.11"
 classifiers = [
     "Programming Language :: Python :: 3.11",
-    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)"
 ]
 authors = [
     { name = "functionpointer", email = "suspendfunction@gmail.com" },
